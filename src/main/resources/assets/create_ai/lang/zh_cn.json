@@ -1,0 +1,34 @@
+{
+  "itemGroup.create_ai": "机械动力：能工智人",
+
+  "block.create_ai.processing_table": "加工台",
+  "block.create_ai.processing_table.tooltip.summary": "是_置物台_的升级版。",
+  "block.create_ai.processing_table.tooltip.condition1": "手持物品对其使用时",
+  "block.create_ai.processing_table.tooltip.behaviour1": "该物品可代替_动力臂_的操作。",
+
+  "item.create_ai.hammer": "锤子",
+  "item.create_ai.hammer.tooltip.summary": "可代替_动力冲压机_的操作。",
+  "item.create_ai.hammer.tooltip.condition1": "在置物台上使用时",
+  "item.create_ai.hammer.tooltip.behaviour1": "冲压置物台上的物品。",
+  "item.create_ai.hammer.tooltip.condition2": "在工作盆中使用时",
+  "item.create_ai.hammer.tooltip.behaviour2": "压缩工作盆内的物品。",
+
+  "item.create_ai.spout_gun": "注液枪",
+  "item.create_ai.spout_gun.tooltip.summary": "在置物台上使用时可代替_注液器_的操作。",
+  "item.create_ai.spout_gun.tooltip.condition1": "在置物台上使用时",
+  "item.create_ai.spout_gun.tooltip.behaviour1": "为置物台上的物品注入流体。",
+  "item.create_ai.spout_gun.tooltip.condition2": "对着流体或流体储罐使用时",
+  "item.create_ai.spout_gun.tooltip.behaviour2": "抽取流体装入枪内。",
+  "item.create_ai.spout_gun.tooltip.condition3": "在背包内用装有流体的物品右键时",
+  "item.create_ai.spout_gun.tooltip.behaviour3": "用该物品为注液枪填装。",
+  "item.create_ai.spout_gun.tooltip.condition4": "在背包内用空桶右键时",
+  "item.create_ai.spout_gun.tooltip.behaviour4": "用枪内的流体填充空桶。",
+  "item.create_ai.spout_gun.empty": "空",
+  "item.create_ai.spout_gun.contents": "%s  %s / %s mB",
+  "item.create_ai.spout_gun.purge_hint": "潜行并长按右键清空",
+
+  "item.create_ai.stirring_rod": "搅拌棒",
+  "item.create_ai.stirring_rod.tooltip.summary": "可代替_动力搅拌器_的操作。",
+  "item.create_ai.stirring_rod.tooltip.condition1": "在工作盆中使用时",
+  "item.create_ai.stirring_rod.tooltip.behaviour1": "搅拌工作盆内的物品。"
+}

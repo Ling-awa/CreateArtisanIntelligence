@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "create_ai:block/processing_table/block"
+    }
+  }
+}
