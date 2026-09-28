@@ -1,8 +1,12 @@
 package io.github.Ling.create_ai;
 
 import com.mojang.logging.LogUtils;
+import com.simibubi.create.content.kinetics.saw.SawBlockEntity;
+import com.simibubi.create.content.kinetics.saw.SawVisual;
 import com.simibubi.create.content.logistics.depot.DepotRenderer;
 import com.simibubi.create.foundation.item.render.SimpleCustomRenderer;
+
+import dev.engine_room.flywheel.lib.visualization.SimpleBlockEntityVisualizer;
 
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -15,7 +19,6 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -70,9 +73,28 @@ public class Create_ai {
     public static final DeferredBlock<ProcessingTableBlock> PROCESSING_TABLE = BLOCKS.register("processing_table",
         () -> new ProcessingTableBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.ANDESITE).mapColor(MapColor.COLOR_GRAY)));
     public static final DeferredItem<BlockItem> PROCESSING_TABLE_ITEM = ITEMS.registerSimpleBlockItem("processing_table", PROCESSING_TABLE);
+    // The data-fixer type the builder asks for is optional, and null is how a mod says "none": vanilla
+    // always passes a real one because its own register() fetches it, which is why the parameter reads
+    // as non-null and why the IDE flags this. Nothing dereferences it for a modded type, and a mod with
+    // no legacy saves has nothing for the data fixer to do.
+    @SuppressWarnings("DataFlowIssue")
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ProcessingTableBlockEntity>> PROCESSING_TABLE_BE =
         BLOCK_ENTITY_TYPES.register("processing_table",
             () -> BlockEntityType.Builder.of(ProcessingTableBlockEntity::new, PROCESSING_TABLE.get()).build(null));
+
+    // create_ai:brass_mechanical_saw - Create's mechanical saw, twice the cutting speed and twice the
+    // stress. The block properties and shape are Create's: Create builds its saw from
+    // SharedProperties.stone() and only overrides the map color.
+    public static final DeferredBlock<BrassMechanicalSawBlock> BRASS_MECHANICAL_SAW = BLOCKS.register("brass_mechanical_saw",
+        () -> new BrassMechanicalSawBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.ANDESITE).mapColor(MapColor.PODZOL)));
+    public static final DeferredItem<BlockItem> BRASS_MECHANICAL_SAW_ITEM = ITEMS.registerSimpleBlockItem("brass_mechanical_saw", BRASS_MECHANICAL_SAW);
+    // The class in the type parameter is Create's SawBlockEntity, not our subclass: everything Create
+    // does with a saw - SawBlock's own item-interaction lookup, SawVisual and SawRenderer - is written
+    // against that type, and our subclass is one. Only the registered type is ours.
+    @SuppressWarnings("DataFlowIssue")
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BrassMechanicalSawBlockEntity>> BRASS_MECHANICAL_SAW_BE =
+        BLOCK_ENTITY_TYPES.register("brass_mechanical_saw",
+            () -> BlockEntityType.Builder.<BrassMechanicalSawBlockEntity>of(BrassMechanicalSawBlockEntity::new, BRASS_MECHANICAL_SAW.get()).build(null));
 
     // create_ai:hammer - hold use for 0.75 seconds to press what a depot or basin holds.
     // NOTE: registered as our HammerItem subclass, not with registerSimpleItem - a plain Item would
@@ -106,6 +128,7 @@ public class Create_ai {
     static {
         CREATIVE_MODE_TABS.register("base", () -> CreativeModeTab.builder().title(Component.translatable("itemGroup.create_ai")).withTabsBefore(CreativeModeTabs.COMBAT).icon(() -> PROCESSING_TABLE_ITEM.get().getDefaultInstance()).displayItems((parameters, output) -> {
             output.accept(PROCESSING_TABLE_ITEM.get());
+            output.accept(BRASS_MECHANICAL_SAW_ITEM.get());
             output.accept(HAMMER.get());
             output.accept(SPOUT_GUN.get());
             output.accept(STIRRING_ROD.get());
@@ -131,6 +154,8 @@ public class Create_ai {
 
         // Expose the depot's item handler capability on our own block entity type
         modEventBus.addListener(ProcessingTableBlockEntity::registerCapabilities);
+        // Expose the saw's item handler capability on our own block entity type
+        modEventBus.addListener(BrassMechanicalSawBlockEntity::registerCapabilities);
         // Expose the spout gun's fluid tank through the stock item fluid handler capability
         modEventBus.addListener(SpoutGunItem::registerCapabilities);
 
@@ -142,6 +167,18 @@ public class Create_ai {
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
+        // Create's movement behaviour registry is keyed by block, and Create only ever registers its own
+        // saw there. Deferred to the main thread because FMLCommonSetupEvent runs mods in parallel and
+        // this registry is shared state; by now every block is registered, so the lookup will find ours.
+        event.enqueueWork(BrassMechanicalSawMovementBehaviour::register);
+        // Create's contraption assembly treats a saw as non-supportive towards its facing, so a piston
+        // pushing one does not drag the block the blade points at along with it. Create's own fallback
+        // recognises only create:mechanical_saw by identity, so ours has to say so itself.
+        event.enqueueWork(BrassMechanicalSawMovementChecks::register);
+        // The stress impact, into Create's own registry: the network, the goggles and the item tooltip's
+        // stress line all read it from there, and a kinetic block missing from it draws nothing.
+        event.enqueueWork(BrassMechanicalSawStress::register);
+
         // One line, and only one: the scaffold's chatter (a dirt block, a magic number, a list of
         // items) was console noise with nothing behind it. What is worth printing is what actually got
         // registered, and only once.
@@ -155,6 +192,7 @@ public class Create_ai {
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CREATE_BASE_TAB) {
             event.accept(PROCESSING_TABLE_ITEM);
+            event.accept(BRASS_MECHANICAL_SAW_ITEM);
             event.accept(HAMMER);
             event.accept(SPOUT_GUN);
             event.accept(STIRRING_ROD);
@@ -162,16 +200,38 @@ public class Create_ai {
     }
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent.
-    // The bus is not specified on purpose: it is deprecated for removal (since 1.21.1) and ignored — FML routes each
+    // The bus is not specified on purpose: it is deprecated for removal (since 1.21.1) and ignored —FML routes each
     // listener by its event type (IModBusEvent -> mod bus, everything else -> NeoForge.EVENT_BUS).
     @EventBusSubscriber(modid = MODID, value = Dist.CLIENT)
     public static class ClientModEvents {
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {
+            // Register the blade models with Flywheel FIRST, and here rather than in the renderer's
+            // static fields: Flywheel snapshots the partial models it knows about inside
+            // ModelEvent.RegisterAdditional, and anything created after that event is never baked - it
+            // silently renders as the missing model, with no error in the log. Client setup runs before
+            // the model events; EntityRenderersEvent.RegisterRenderers, where the renderer class would
+            // otherwise initialise, runs after.
+            BrassMechanicalSawBladeModels.register();
+
             // Create's item tooltips, from this mod's items. Client-side, which is where a tooltip is
-            // ever built — Create's own tooltip modifiers are read by its client events, and the
+            // ever built —Create's own tooltip modifiers are read by its client events, and the
             // description classes behind them reach into client-only code.
             ItemTooltips.register();
+
+            // Flywheel draws kinetic blocks, and it looks its visual up per block entity type. Create
+            // wires SawVisual to create:mechanical_saw through its own Registrate builder, so our block
+            // entity type - a different type - has no visual until this registers one, and a kinetic
+            // block with no visual silently loses its spinning shaft. This is the public Flywheel API
+            // Create itself calls; registering it is what puts the shaft back.
+            //
+            // neverSkipVanillaRender, not the default: Create's own saw keeps SawRenderer running
+            // alongside the visual (SawRenderer still draws the blade, the items on it and the recipe
+            // filter, and SawVisual only owns the shaft). Skipping vanilla render here would drop those.
+            SimpleBlockEntityVisualizer.builder(Create_ai.BRASS_MECHANICAL_SAW_BE.get())
+                .factory(SawVisual::new)
+                .neverSkipVanillaRender()
+                .apply();
         }
 
         // Create's own depot renderer: it draws the held stack AND the eight output slots, out of the
@@ -180,6 +240,10 @@ public class Create_ai {
         @SubscribeEvent
         public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
             event.registerBlockEntityRenderer(PROCESSING_TABLE_BE.get(), DepotRenderer::new);
+            // Our saw renderer: Create's, with this mod's blade models in place of Create's steel one.
+            // The blade is not part of the block model - Create draws it as a separate partial model -
+            // so the stock SawRenderer would ignore our blade files entirely.
+            event.registerBlockEntityRenderer(BRASS_MECHANICAL_SAW_BE.get(), BrassMechanicalSawRenderer::new);
         }
 
         /**
@@ -187,13 +251,13 @@ public class Create_ai {
          *
          * <p>This has to happen here rather than in an {@code initializeClient} override on the item.
          * Overriding that method puts a reference to a client-only renderer inside a class the server
-         * loads as well — and the JVM, verifying the override, follows the reference and tries to load
+         * loads as well —and the JVM, verifying the override, follows the reference and tries to load
          * {@code BlockEntityWithoutLevelRenderer}, which a dedicated server does not have. Registration
          * through this event keeps the item itself free of client code.
          *
          * <p>Two things happen in the one line: the renderer becomes the gun's client extension, and the
          * gun is entered into Create's list of custom-rendered items, whose models Create wraps while
-         * baking — which is what lets the renderer draw the model itself, and then the cog on top of it.
+         * baking —which is what lets the renderer draw the model itself, and then the cog on top of it.
          */
         @SubscribeEvent
         public static void registerClientExtensions(RegisterClientExtensionsEvent event) {

@@ -1,0 +1,18 @@
+{
+	"format_version": "26.3",
+	"credit": "Made with Blockbench",
+	"textures": {
+		"brass_saw": "create_ai:block/brass_saw"
+	},
+	"elements": [
+		{
+			"name": "Blade",
+			"from": [1, 8, 11],
+			"to": [15, 8.062, 18],
+			"faces": {
+				"up": {"uv": [15, 9, 1, 16], "rotation": 180, "texture": "#brass_saw"},
+				"down": {"uv": [1, 9, 15, 16], "texture": "#brass_saw"}
+			}
+		}
+	]
+}

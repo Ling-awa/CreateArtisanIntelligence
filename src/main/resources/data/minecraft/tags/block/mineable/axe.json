@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "create_ai:processing_table"
+    "create_ai:processing_table",
+    "create_ai:brass_mechanical_saw"
   ]
 }

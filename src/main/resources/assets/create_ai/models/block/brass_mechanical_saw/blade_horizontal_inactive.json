@@ -1,0 +1,6 @@
+{
+  "parent": "create_ai:block/brass_mechanical_saw/blade_horizontal_active",
+  "textures": {
+    "brass_saw": "create_ai:block/static_brass_saw"
+  }
+}

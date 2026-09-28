@@ -1,6 +1,14 @@
 {
   "itemGroup.create_ai": "机械动力：能工智人",
 
+  "block.create_ai.brass_mechanical_saw": "黄铜动力锯",
+  "block.create_ai.brass_mechanical_saw.tooltip.summary": "以双倍的速度加工物品，也可以以双倍的速度砍伐，或者以_精准采集_的方式采集。",
+  "block.create_ai.brass_mechanical_saw.tooltip.condition1": "在顶面选择模式后",
+  "block.create_ai.brass_mechanical_saw.tooltip.behaviour1": "_快速砍伐_的破坏速度是_动力锯_的两倍；_精准采集_速度与_动力锯_相同，但以_精准采集_的方式伐倒树木，树叶会掉落为树叶方块。",
+  "create_ai.brass_mechanical_saw.mode": "砍伐模式",
+  "create_ai.brass_mechanical_saw.mode.fast_tree_felling": "快速砍伐",
+  "create_ai.brass_mechanical_saw.mode.precision": "精准采集",
+
   "block.create_ai.processing_table": "加工台",
   "block.create_ai.processing_table.tooltip.summary": "是_置物台_的升级版。",
   "block.create_ai.processing_table.tooltip.condition1": "手持物品对其使用时",
