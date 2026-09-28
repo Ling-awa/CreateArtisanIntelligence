@@ -8,7 +8,7 @@ import net.minecraft.resources.ResourceLocation;
  *
  * <p>A blade is not part of the saw's block model — Create draws it as a separate partial model — so
  * these six models are not referenced by any blockstate and would otherwise never be baked. Flywheel
- * bakes them by looking up {@link PartialModel#ALL} inside {@code ModelEvent.RegisterAdditional}:
+ * bakes them by looking up {@code PartialModel.ALL} inside {@code ModelEvent.RegisterAdditional}:
  *
  * <pre>{@code
  * public static void onRegisterAdditional(ModelEvent.RegisterAdditional event) {

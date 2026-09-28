@@ -79,11 +79,11 @@ public final class BrassSawPrecisionCutting {
         Optional<AbstractBlockBreakQueue> dynamicTree = TreeCutter.findDynamicTree(brokenState.getBlock(), pos);
         if (dynamicTree.isPresent()) {
             dynamicTree.get()
-                .destroyBlocks(level, tool, null, drop::accept);
+                .destroyBlocks(level, tool, null, drop);
             return;
         }
         TreeCutter.findTree(level, pos, brokenState)
-            .destroyBlocks(level, tool, null, drop::accept);
+            .destroyBlocks(level, tool, null, drop);
     }
 
     /** One block, cut with the silk-touched tool. Used for the block the blade came to rest on. */

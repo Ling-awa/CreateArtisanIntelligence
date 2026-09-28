@@ -6,6 +6,7 @@
   "block.create_ai.brass_mechanical_saw.tooltip.condition1": "在顶面选择模式后",
   "block.create_ai.brass_mechanical_saw.tooltip.behaviour1": "_快速砍伐_的破坏速度是_动力锯_的两倍；_精准采集_速度与_动力锯_相同，但以_精准采集_的方式伐倒树木，树叶会掉落为树叶方块。",
   "create_ai.brass_mechanical_saw.mode": "砍伐模式",
+  "create_ai.brass_mechanical_saw.goggles.mode": "砍伐模式：%1$s",
   "create_ai.brass_mechanical_saw.mode.fast_tree_felling": "快速砍伐",
   "create_ai.brass_mechanical_saw.mode.precision": "精准采集",
 

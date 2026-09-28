@@ -6,6 +6,7 @@
   "block.create_ai.brass_mechanical_saw.tooltip.condition1": "Mode selected on the top face",
   "block.create_ai.brass_mechanical_saw.tooltip.behaviour1": "_Fast Tree Felling_ breaks blocks at double speed. _Precision_ cuts at a _Mechanical Saw_'s speed but fells trees with _Silk Touch_, so leaves drop as leaves.",
   "create_ai.brass_mechanical_saw.mode": "Cutting Mode",
+  "create_ai.brass_mechanical_saw.goggles.mode": "Cutting Mode: %1$s",
   "create_ai.brass_mechanical_saw.mode.fast_tree_felling": "Fast Tree Felling",
   "create_ai.brass_mechanical_saw.mode.precision": "Precision",
 

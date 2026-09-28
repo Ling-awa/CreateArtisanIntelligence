@@ -1,7 +1,6 @@
 package io.github.Ling.create_ai;
 
 import com.mojang.logging.LogUtils;
-import com.simibubi.create.content.kinetics.saw.SawBlockEntity;
 import com.simibubi.create.content.kinetics.saw.SawVisual;
 import com.simibubi.create.content.logistics.depot.DepotRenderer;
 import com.simibubi.create.foundation.item.render.SimpleCustomRenderer;
@@ -178,6 +177,8 @@ public class Create_ai {
         // The stress impact, into Create's own registry: the network, the goggles and the item tooltip's
         // stress line all read it from there, and a kinetic block missing from it draws nothing.
         event.enqueueWork(BrassMechanicalSawStress::register);
+        // Create registers its saw's placement helper against its own block, so a subclass inherits none.
+        event.enqueueWork(BrassMechanicalSawPlacementHelper::register);
 
         // One line, and only one: the scaffold's chatter (a dirt block, a magic number, a list of
         // items) was console noise with nothing behind it. What is worth printing is what actually got

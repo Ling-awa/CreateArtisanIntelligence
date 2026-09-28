@@ -47,11 +47,6 @@ public class BrassMechanicalSawModeBehaviour extends ScrollOptionBehaviour<Brass
         withCallback(this::onModeChanged);
     }
 
-    /** The mode currently selected. */
-    public BrassMechanicalSawMode getMode() {
-        return get();
-    }
-
     /**
      * Writes the new mode into the blockstate and pushes it to clients.
      *

@@ -60,7 +60,12 @@ public enum BrassMechanicalSawMode implements INamedIconOptions, StringRepresent
         return "create_ai.brass_mechanical_saw.mode." + name;
     }
 
-    /** The mode's name as shown in the scroll-option board. */
+    /**
+     * The mode's name as a component — used by the goggle overlay, which prints it beside its label.
+     *
+     * <p>Kept here rather than built from {@link #getTranslationKey()} at each call site so the lang key
+     * is spelled in exactly one place.
+     */
     public MutableComponent getLabel() {
         return Component.translatable(getTranslationKey());
     }

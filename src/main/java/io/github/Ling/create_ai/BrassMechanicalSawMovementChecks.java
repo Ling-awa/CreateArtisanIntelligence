@@ -2,8 +2,6 @@ package io.github.Ling.create_ai;
 
 import com.simibubi.create.api.contraption.BlockMovementChecks;
 
-import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 /**

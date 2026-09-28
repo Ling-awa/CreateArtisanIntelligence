@@ -2,11 +2,20 @@ package io.github.Ling.create_ai;
 
 import java.util.List;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
+import com.simibubi.create.content.kinetics.drill.DrillBlock;
 import com.simibubi.create.content.kinetics.saw.SawBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
+import com.simibubi.create.foundation.damageTypes.CreateDamageSources;
+import com.simibubi.create.foundation.utility.CreateLang;
 
+import net.minecraft.ChatFormatting;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
@@ -32,12 +41,15 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
  * <p>The stress impact is not touched here. It is declared in {@link BrassMechanicalSawStress} through Create's
  * own registry, which is where the network, the goggles and the item tooltip all read it from.</p>
  */
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 public class BrassMechanicalSawBlockEntity extends SawBlockEntity {
 
     /** How much faster a cut runs than Create's saw: Create divides by 24, this by 12. */
     private static final float SPEED_MULTIPLIER = 2f;
 
-    private BrassMechanicalSawModeBehaviour modeBehaviour;
+    /** How much harder a brass saw bites than a mechanical one. */
+    private static final double DAMAGE_MULTIPLIER = 2.0;
 
     public BrassMechanicalSawBlockEntity(BlockPos pos, BlockState state) {
         // Create's constructor is public and takes the type as a parameter, so it is reused as-is:
@@ -48,8 +60,9 @@ public class BrassMechanicalSawBlockEntity extends SawBlockEntity {
     @Override
     public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
         super.addBehaviours(behaviours);
-        modeBehaviour = new BrassMechanicalSawModeBehaviour(this);
-        behaviours.add(modeBehaviour);
+        // No field kept: the blockstate is the single source of truth for the mode, so nothing needs to
+        // reach back into the behaviour afterwards.
+        behaviours.add(new BrassMechanicalSawModeBehaviour(this));
     }
 
     // --- the mode ---------------------------------------------------------------------------------
@@ -72,6 +85,29 @@ public class BrassMechanicalSawBlockEntity extends SawBlockEntity {
     public boolean isPrecisionMode() {
         return getMode() == BrassMechanicalSawMode.PRECISION;
     }
+
+    // --- engineer's goggles -----------------------------------------------------------------------
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Reports the cutting mode to a player wearing Create's engineer's goggles. The block entity
+     * already carries the rest of the overlay through {@code KineticBlockEntity}, which implements
+     * {@code IHaveGoggleInformation} and prints the kinetic stats; this adds the one line that is ours.
+     *
+     * <p>The mode is read from the blockstate, so the overlay shows exactly what the contraption will use
+     * when the saw is assembled.
+     */
+    @Override
+    public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
+        CreateLang.translate(GOGGLES_MODE_KEY, getMode().getLabel())
+            .style(ChatFormatting.GRAY)
+            .forGoggles(tooltip);
+        return true;
+    }
+
+    /** Goggle overlay label, e.g. "Cutting Mode: Fast Tree Felling". */
+    private static final String GOGGLES_MODE_KEY = "create_ai.brass_mechanical_saw.goggles.mode";
 
     // --- deviation 1: twice the speed, in fast mode only ------------------------------------------
 
@@ -103,6 +139,23 @@ public class BrassMechanicalSawBlockEntity extends SawBlockEntity {
         if (isPrecisionMode())
             return super.getSpeed();
         return super.getSpeed() * SPEED_MULTIPLIER;
+    }
+
+    /**
+     * Hurts an entity touching the spinning blade, with the brass saw's doubled damage.
+     *
+     * <p>Called by the block's {@code entityInside}, which cannot work this out for itself: it only gets
+     * an {@link SawBlockEntity}, not this subclass, so it cannot see past the fast-mode bonus that
+     * {@link #getSpeed()} applies.
+     *
+     * <p>Damage is a property of the machine rather than of the setting, so this deliberately uses
+     * {@code super.getSpeed()} — the speed the network actually supplies — and not {@link #getSpeed()}.
+     * Reading the latter would have made a precision-mode saw bite half as hard as a fast-mode one, which
+     * is not what the mode is for.
+     */
+    public void hurtWithBlade(net.minecraft.world.entity.Entity entity) {
+        double base = DrillBlock.getDamage(super.getSpeed());
+        entity.hurt(CreateDamageSources.saw(level), (float) Mth.clamp(base * DAMAGE_MULTIPLIER, 1, 10));
     }
 
     // --- deviation 2: precision mode fells with Silk Touch -----------------------------------------
