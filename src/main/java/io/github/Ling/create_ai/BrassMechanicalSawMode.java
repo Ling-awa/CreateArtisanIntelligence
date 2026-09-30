@@ -1,8 +1,11 @@
 package io.github.Ling.create_ai;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions;
 import com.simibubi.create.foundation.gui.AllIcons;
 
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.StringRepresentable;
@@ -19,6 +22,8 @@ import net.minecraft.util.StringRepresentable;
  * the blockstate and in the scroll value. {@link #FAST_TREE_FELLING} must therefore stay first, which
  * is also the default a freshly placed saw gets.
  */
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 public enum BrassMechanicalSawMode implements INamedIconOptions, StringRepresentable {
 
     /**

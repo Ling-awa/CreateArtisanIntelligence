@@ -172,7 +172,7 @@ public class Create_ai {
     @SuppressWarnings("DataFlowIssue")
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BrassMechanicalSawBlockEntity>> BRASS_MECHANICAL_SAW_BE =
         BLOCK_ENTITY_TYPES.register("brass_mechanical_saw",
-            () -> BlockEntityType.Builder.<BrassMechanicalSawBlockEntity>of(BrassMechanicalSawBlockEntity::new, BRASS_MECHANICAL_SAW.get()).build(null));
+            () -> BlockEntityType.Builder.of(BrassMechanicalSawBlockEntity::new, BRASS_MECHANICAL_SAW.get()).build(null));
 
     // create_ai:hammer - hold use for 0.75 seconds to press what a depot or basin holds.
     // NOTE: registered as our HammerItem subclass, not with registerSimpleItem - a plain Item would

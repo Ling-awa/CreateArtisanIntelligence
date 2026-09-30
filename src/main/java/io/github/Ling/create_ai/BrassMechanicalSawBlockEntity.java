@@ -1,6 +1,7 @@
 package io.github.Ling.create_ai;
 
 import java.util.List;
+import java.util.Objects;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -103,7 +104,7 @@ public class BrassMechanicalSawBlockEntity extends SawBlockEntity {
      */
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
-        boolean added = super.addToGoggleTooltip(tooltip, isPlayerSneaking);
+        super.addToGoggleTooltip(tooltip, isPlayerSneaking);
 
         // CreateLang prefixes everything it looks up with "create." - CreateLang.builder() is
         // new LangBuilder(Create.ID), and Create.ID is "create". So the key handed to it here is the
@@ -174,7 +175,10 @@ public class BrassMechanicalSawBlockEntity extends SawBlockEntity {
      */
     public void hurtWithBlade(net.minecraft.world.entity.Entity entity) {
         double base = DrillBlock.getDamage(super.getSpeed());
-        entity.hurt(CreateDamageSources.saw(level), (float) Mth.clamp(base * DAMAGE_MULTIPLIER, 1, 10));
+        // The damage source needs a level that exists, and the block entity's own is the one it was hurt in:
+        // this is only reached from the block's entityInside, so the entity is in a world and so is the saw.
+        entity.hurt(CreateDamageSources.saw(Objects.requireNonNull(this.level)),
+            (float) Mth.clamp(base * DAMAGE_MULTIPLIER, 1, 10));
     }
 
     // --- deviation 2: precision mode fells with Silk Touch -----------------------------------------

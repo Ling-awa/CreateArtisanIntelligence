@@ -1,10 +1,13 @@
 package io.github.Ling.create_ai;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.simibubi.create.content.kinetics.fan.AirFlowParticle;
 import com.simibubi.create.content.kinetics.fan.processing.FanProcessingType;
 
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
@@ -40,6 +43,8 @@ import net.minecraft.world.phys.Vec3;
  *
  * <p>Client-only, and reached only from the particle registration, which is client-only as well.
  */
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 public class FanAirParticle extends AirFlowParticle {
 
     private final AirFlowSource flow;

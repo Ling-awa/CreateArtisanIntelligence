@@ -3,6 +3,8 @@ package io.github.Ling.create_ai;
 import java.util.List;
 import java.util.function.Predicate;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 import com.simibubi.create.content.kinetics.saw.SawBlock;
 
 import net.createmod.catnip.placement.IPlacementHelper;
@@ -30,6 +32,7 @@ import net.minecraft.world.phys.BlockHitResult;
  * <p>It accepts either saw as the held item and either as the clicked block, so the two machines extend
  * each other's rows interchangeably instead of each only helping itself.
  */
+@ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
 public final class BrassMechanicalSawPlacementHelper implements IPlacementHelper {
 
@@ -81,7 +84,7 @@ public final class BrassMechanicalSawPlacementHelper implements IPlacementHelper
         if (directions.isEmpty())
             return PlacementOffset.fail();
 
-        return PlacementOffset.success(pos.relative(directions.get(0)),
+        return PlacementOffset.success(pos.relative(directions.getFirst()),
             s -> s.setValue(SawBlock.FACING, state.getValue(SawBlock.FACING))
                 .setValue(SawBlock.AXIS_ALONG_FIRST_COORDINATE, state.getValue(SawBlock.AXIS_ALONG_FIRST_COORDINATE))
                 .setValue(SawBlock.FLIPPED, state.getValue(SawBlock.FLIPPED)));

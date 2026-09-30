@@ -31,7 +31,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
  * <li>the loupe is in the helmet slot,
  * <li>the player is sneaking, which is what separates this from an ordinary click,
  * <li>the clicked block entity is a {@link DepotBlockEntity} holding an item,
- * <li>and the held stack passes the same {@link DeployerActions#canDeploy} test the table uses.
+ * <li>and the held stack passes the same {@link DeployerActions#cannotDeploy} test the table uses.
  * </ul>
  *
  * <p>When any of them does not hold, this class returns without touching the event, and the click
@@ -74,7 +74,7 @@ public final class LoupeDeployerOnDepots {
         ItemStack held = event.getItemStack();
         if (held.isEmpty() || Create_ai.isCustomTool(held))
             return;
-        if (!DeployerActions.canDeploy(level, onDepot, held, player, event.getHand(), event.getHitVec()))
+        if (DeployerActions.cannotDeploy(level, onDepot, held, player, event.getHand(), event.getHitVec()))
             return;
 
         // The click is this action's: consume it, so neither the depot's own take-and-swap nor the

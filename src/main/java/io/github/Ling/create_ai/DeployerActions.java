@@ -97,32 +97,31 @@ public final class DeployerActions {
      *
      * @param hand the hand the player is holding the ingredient in; a stack in the other hand is left
      *             alone
-     * @return whether the step did anything, which is also what the one-second hold reports back
      */
-    public static boolean deploy(Level level, DepotBlockEntity table, Player player, InteractionHand hand,
-                                 BlockHitResult hit) {
+    public static void deploy(Level level, DepotBlockEntity table, Player player, InteractionHand hand,
+                              BlockHitResult hit) {
         if (level.isClientSide)
-            return false;
+            return;
 
         ItemStack held = player.getItemInHand(hand);
         // A custom tool's right-click already means its own action, and the table's hand rules keep
         // tools out of the contents. Either way, it is not an ingredient and has no deployer step.
         if (held.isEmpty() || Create_ai.isCustomTool(held))
-            return false;
+            return;
         // An item that is still cooling down is not an ingredient either. This is what makes one
         // right-click one step: the client stops sending clicks for a cooled item, and a client that
         // ignores its own cooldowns is stopped here.
         if (player.getCooldowns()
             .isOnCooldown(held.getItem()))
-            return false;
+            return;
 
         DepotBehaviour depot = table.getBehaviour(DepotBehaviour.TYPE);
         TransportedItemStackHandlerBehaviour handler = table.getBehaviour(TransportedItemStackHandlerBehaviour.TYPE);
         if (depot == null || handler == null)
-            return false;
+            return;
         ItemStack onTable = depot.getHeldItemStack();
         if (onTable.isEmpty())
-            return false;
+            return;
 
         List<ItemStack> results;
         boolean keepHeld;
@@ -139,7 +138,7 @@ public final class DeployerActions {
         } else {
             Treatment treatment = treat(level, player, hand, held, onTable, table.getBlockPos(), hit, true);
             if (treatment == null)
-                return false;
+                return;
             keepHeld = treatment.keepHeld();
             results = List.of(treatment.result());
         }
@@ -147,7 +146,7 @@ public final class DeployerActions {
         boolean[] applied = { false };
         handler.handleProcessingOnAllItems(transported -> convert(level, transported, results, applied));
         if (!applied[0])
-            return false;
+            return;
 
         // The lock goes on before the held item is spent, not after: the lock covers what the player is
         // carrying, and the item that was just used is about to stop being carried — so it would be the one
@@ -158,32 +157,32 @@ public final class DeployerActions {
         table.notifyUpdate();
         // Create's own feedback for a deployer that did something.
         level.playSound(null, table.getBlockPos(), SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, .25f, .75f);
-        return true;
     }
 
     /** How long the player's hands are tied after the deployer has done something: half a second. */
     public static final int LOCK_TICKS = 10;
 
     /**
-     * Whether a deployer step would do anything here, worked out the way {@link #deploy} works it out and
-     * without doing any of it.
+     * Whether a deployer step would do nothing here, worked out the way {@link #deploy} works it out and
+     * without doing any of it. Phrased as the failure so the callers, which all ask it before a click, can
+     * read it straight.
      *
      * <p>The client is the reason this exists: whether a click is worth swinging at is an animation
      * decision, and the client makes it before the server ever hears about the click. Both sides ask the
      * same question, so the arm and the action agree.
      */
-    public static boolean canDeploy(Level level, ItemStack onTable, ItemStack held, @Nullable Player player,
-                                    InteractionHand hand, BlockHitResult hit) {
+    public static boolean cannotDeploy(Level level, ItemStack onTable, ItemStack held, @Nullable Player player,
+                                       InteractionHand hand, BlockHitResult hit) {
         if (level == null || onTable.isEmpty() || held.isEmpty() || Create_ai.isCustomTool(held))
-            return false;
+            return true;
         // The same cooldown gate the action itself uses: a click that is still cooling down does nothing,
         // and a click that does nothing should not look like it did.
         if (player != null && player.getCooldowns()
             .isOnCooldown(held.getItem()))
-            return false;
-        if (findRecipe(level, onTable, held) != null)
             return true;
-        return treat(level, player, hand, held, onTable, BlockPos.ZERO, hit, false) != null;
+        if (findRecipe(level, onTable, held) != null)
+            return false;
+        return treat(level, player, hand, held, onTable, BlockPos.ZERO, hit, false) == null;
     }
 
     /**
@@ -336,12 +335,10 @@ public final class DeployerActions {
             held.hurtAndBreak(1, player, LivingEntity.getSlotForHand(hand));
             return;
         }
-        // The crafting remainder belongs to the item in 1.21.1, not to the stack: ItemStack has no
-        // getCraftingRemainingItem here, so the stack's own item answers, and it has to be asked
-        // first — the item says "none" with a null rather than with an empty stack.
-        ItemStack remainder = held.getItem()
-            .hasCraftingRemainingItem() ? new ItemStack(held.getItem()
-                .getCraftingRemainingItem()) : ItemStack.EMPTY;
+        // The crafting remainder, asked of the stack: NeoForge's ItemStack-sensitive form answers with an
+        // empty stack when there is nothing to hand back, where the deprecated item-only getter answers
+        // with a null.
+        ItemStack remainder = held.getCraftingRemainingItem();
         held.shrink(1);
         if (held.isEmpty())
             player.setItemInHand(hand, remainder);

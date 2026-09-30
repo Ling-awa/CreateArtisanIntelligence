@@ -4,9 +4,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 import com.simibubi.create.content.logistics.depot.DepotBlockEntity;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -65,7 +68,11 @@ import net.neoforged.neoforge.event.ItemStackedOnOtherEvent;
  * <p>Registering this item in {@code Create_ai.isCustomTool} is what keeps it off the processing table: a
  * tool never becomes cargo, and its right-click always means its own action.
  */
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 @EventBusSubscriber(modid = Create_ai.MODID)
+// A Level is AutoCloseable, and a level read through here is never this mod's to close.
+@SuppressWarnings("resource")
 public class HandheldMechanicalSawItem extends Item {
 
     /** How long the use key has to be held before the first stroke: one second, which is one stroke. */
@@ -171,7 +178,7 @@ public class HandheldMechanicalSawItem extends Item {
      * the target is re-aimed at the moment of each stroke rather than trusted from when the hold started.
      *
      * <p>The hold is not ended by a stroke. It runs until the player lets go, which is what makes holding
-     * the key cut stroke after stroke; {@link #strokeDue} is what spaces the strokes a second apart.
+     * the key cut stroke after stroke; {@link #strokeNotDue} is what spaces the strokes a second apart.
      */
     @Override
     public void onUseTick(Level level, LivingEntity entity, ItemStack stack, int remaining) {
@@ -182,17 +189,17 @@ public class HandheldMechanicalSawItem extends Item {
         // appearance honestly, and aiming at another depot mid-hold cuts that one.
         DepotBlockEntity depot = DepotToolActions.targetOf(player);
         if (level.isClientSide) {
-            if (depot != null && SawToolActions.canCut(depot, stack))
+            if (SawToolActions.canCut(depot, stack))
                 ToolVisuals.sawParticles(level, depot.getBlockPos(), player.getLookAngle(), depot.getHeldItem(),
                     strokeProgress(entity));
             return;
         }
-        if (!strokeDue(player, entity))
+        if (strokeNotDue(player, entity))
             return;
         // One stroke: the recipe runs and Create's own saw activation is raised where the stroke is decided,
         // which is here on the server — the call broadcasts it to everyone nearby. Nothing is put on cooldown
         // and the use is not stopped: the next stroke is due a second from now.
-        if (depot != null && SawToolActions.cutWith(depot, stack))
+        if (SawToolActions.cutWith(depot, stack))
             ToolVisuals.sawCutSound(level, depot.getBlockPos(), depot.getHeldItem());
     }
 
@@ -238,7 +245,7 @@ public class HandheldMechanicalSawItem extends Item {
     }
 
     /**
-     * Whether a stroke is due now, and the clock it is measured against.
+     * Whether the next stroke is still to come, and the clock it is measured against.
      *
      * <p>The first stroke is due as soon as the key has been held {@value #CHARGE_TICKS} ticks, and every
      * stroke after it is a further {@value #CHARGE_TICKS} ticks behind the last — both counted from the
@@ -247,15 +254,15 @@ public class HandheldMechanicalSawItem extends Item {
      * gives, and a fresh hold reads the elapsed time from zero again, which is what a hold that starts after
      * a release is.
      */
-    private static boolean strokeDue(Player player, LivingEntity entity) {
+    private static boolean strokeNotDue(Player player, LivingEntity entity) {
         int held = heldTicks(entity);
         Integer last = LAST_STROKE.get(player);
         if (last == null)
             last = 0;
         if (held - last < CHARGE_TICKS)
-            return false;
+            return true;
         LAST_STROKE.put(player, held);
-        return true;
+        return false;
     }
 
     // --- bypassing the filter ---------------------------------------------------------------------
@@ -300,7 +307,7 @@ public class HandheldMechanicalSawItem extends Item {
 
         Player player = event.getPlayer();
         boolean clientSide = player.level().isClientSide;
-        if (clientSide && !CreativeSlotSync.isCreativeScreenClick(player))
+        if (clientSide && CreativeSlotSync.isNotCreativeScreenClick(player))
             return;
 
         ItemStack stackedOn = event.getStackedOnItem();

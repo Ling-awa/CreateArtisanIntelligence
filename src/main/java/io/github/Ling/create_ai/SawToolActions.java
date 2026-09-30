@@ -13,7 +13,6 @@ import com.simibubi.create.content.kinetics.belt.behaviour.TransportedItemStackH
 import com.simibubi.create.content.kinetics.belt.behaviour.TransportedItemStackHandlerBehaviour.TransportedResult;
 import com.simibubi.create.content.kinetics.belt.transport.TransportedItemStack;
 import com.simibubi.create.content.kinetics.saw.CuttingRecipe;
-import com.simibubi.create.content.logistics.depot.DepotBehaviour;
 import com.simibubi.create.content.logistics.depot.DepotBlockEntity;
 import com.simibubi.create.content.processing.sequenced.SequencedAssemblyRecipe;
 import com.simibubi.create.foundation.item.ItemHelper;
@@ -190,10 +189,9 @@ public final class SawToolActions {
             if (!stack.isEmpty())
                 ItemHelper.addToList(stack.copy(), list);
         }
-        if (input.getItem()
-            .hasCraftingRemainingItem())
-            ItemHelper.addToList(new ItemStack(input.getItem()
-                .getCraftingRemainingItem()), list);
+        ItemStack remainder = input.getCraftingRemainingItem();
+        if (!remainder.isEmpty())
+            ItemHelper.addToList(remainder, list);
         return list;
     }
 

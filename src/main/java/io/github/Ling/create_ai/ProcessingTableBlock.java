@@ -1,10 +1,15 @@
 package io.github.Ling.create_ai;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
+import org.jetbrains.annotations.Nullable;
+
 import com.simibubi.create.content.kinetics.belt.transport.TransportedItemStack;
 import com.simibubi.create.content.logistics.depot.DepotBehaviour;
 import com.simibubi.create.content.logistics.depot.DepotBlock;
 import com.simibubi.create.content.logistics.depot.DepotBlockEntity;
 
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -37,6 +42,8 @@ import net.minecraft.world.phys.BlockHitResult;
  *     what makes tool interaction unambiguous.</li>
  * </ul>
  */
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 public class ProcessingTableBlock extends DepotBlock {
 
     public ProcessingTableBlock(Properties properties) {
@@ -95,7 +102,7 @@ public class ProcessingTableBlock extends DepotBlock {
             //
             // Consumed, not passed: passing makes the client repeat the click with its other hand, and
             // that retry arrives bare-handed, which on a depot means "take the contents".
-            if (!DeployerActions.canDeploy(level, depot.getHeldItemStack(), stack, player, hand, hitResult))
+            if (DeployerActions.cannotDeploy(level, depot.getHeldItemStack(), stack, player, hand, hitResult))
                 return ItemInteractionResult.CONSUME;
             if (!level.isClientSide)
                 table.deployerUse(player, hand, hitResult);
@@ -123,6 +130,8 @@ public class ProcessingTableBlock extends DepotBlock {
         depot.blockEntity.notifyUpdate();
     }
 
+    /** This table's block entity at a position, or null when the block there is not one of ours. */
+    @Nullable
     private static ProcessingTableBlockEntity tableAt(Level level, BlockPos pos) {
         return DepotToolActions.depotAt(level, pos) instanceof ProcessingTableBlockEntity table ? table : null;
     }

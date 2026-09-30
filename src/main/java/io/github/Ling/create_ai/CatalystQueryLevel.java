@@ -2,14 +2,16 @@ package io.github.Ling.create_ai;
 
 import java.util.List;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 import org.jetbrains.annotations.Nullable;
 
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.DifficultyInstance;
@@ -86,6 +88,8 @@ import net.minecraft.world.ticks.LevelTickAccess;
  * <p>Common code only, and deliberately so: nothing here names a client class, and a dedicated server loads
  * it like any other class of this mod.
  */
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 final class CatalystQueryLevel extends Level {
 
     /**
@@ -179,6 +183,10 @@ final class CatalystQueryLevel extends Level {
     }
 
     @Override
+    // The accessor is deprecated in Level, but it is still part of the contract a level has to answer, and
+    // this level answers everything by forwarding to the real one: the base implementation would read state
+    // this query level deliberately does not carry.
+    @SuppressWarnings("deprecation")
     public int getSeaLevel() {
         return this.real.getSeaLevel();
     }
@@ -256,6 +264,8 @@ final class CatalystQueryLevel extends Level {
      * try/catch turns that into "this type cannot judge the item".
      */
     @Override
+    // The null is the mechanism, not an oversight: it is what makes a world-reading check throw.
+    @SuppressWarnings("DataFlowIssue")
     public ChunkSource getChunkSource() {
         return null;
     }
@@ -271,12 +281,15 @@ final class CatalystQueryLevel extends Level {
 
     /** Nothing in this level is ever ticked, so nothing is ever scheduled into it... */
     @Override
+    @Nullable
     public Entity getEntity(int id) {
         return null;
     }
 
     /** ...and there is nobody to look up by id either. Both are unreachable through the borrowed ticks. */
     @Override
+    // Again the null is the mechanism: a query level has no entities, and asking it for one has to fail.
+    @SuppressWarnings("DataFlowIssue")
     protected LevelEntityGetter<Entity> getEntities() {
         return null;
     }

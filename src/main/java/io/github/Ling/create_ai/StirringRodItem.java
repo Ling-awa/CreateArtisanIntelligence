@@ -1,8 +1,11 @@
 package io.github.Ling.create_ai;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.content.processing.basin.BasinBlockEntity;
 
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -30,6 +33,8 @@ import net.minecraft.world.level.Level;
  *
  * <p>The hold never ends on its own — letting go is what stops it.
  */
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 public class StirringRodItem extends Item {
 
     /** Long enough that a held stir never runs out by itself. */
@@ -68,7 +73,7 @@ public class StirringRodItem extends Item {
         // Answered either way, for the same reason the hammer answers: an interaction that passes is
         // repeated by the client with its other hand, and that retry is a bare-handed click. CONSUME
         // keeps that answer without swinging the arm at a basin that has nothing to stir.
-        if (!BasinToolActions.canMix(basin))
+        if (BasinToolActions.cannotMix(basin))
             return InteractionResult.CONSUME;
         player.startUsingItem(context.getHand());
         return InteractionResult.SUCCESS;
@@ -78,7 +83,7 @@ public class StirringRodItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        if (!BasinToolActions.canMix(BasinToolActions.targetOf(player)))
+        if (BasinToolActions.cannotMix(BasinToolActions.targetOf(player)))
             return InteractionResultHolder.pass(stack);
         player.startUsingItem(hand);
         return InteractionResultHolder.consume(stack);

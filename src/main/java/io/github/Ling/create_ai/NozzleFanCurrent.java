@@ -6,7 +6,6 @@ import java.util.UUID;
 
 import org.jetbrains.annotations.Nullable;
 
-import com.simibubi.create.AllTags;
 import com.simibubi.create.content.kinetics.fan.AirCurrent;
 import com.simibubi.create.content.kinetics.fan.processing.FanProcessingType;
 import com.simibubi.create.infrastructure.config.AllConfigs;
@@ -58,6 +57,8 @@ import net.minecraft.world.phys.Vec3;
  * client and its integrated server share one JVM, so a single map would let one side's field be stepped by
  * the other's ticks.
  */
+// A Level is AutoCloseable, and a level read through here is never this mod's to close.
+@SuppressWarnings("resource")
 public final class NozzleFanCurrent implements AirFlowSource {
 
     /** How far the field reaches, in blocks, in every direction — the fan's own reach. */

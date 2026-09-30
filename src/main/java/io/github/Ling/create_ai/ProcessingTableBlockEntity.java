@@ -118,11 +118,12 @@ public class ProcessingTableBlockEntity extends DepotBlockEntity {
      * firing the deployer over and over is the half second of item cooldown the action leaves behind —
      * see {@link DeployerActions#deploy} — which the client checks before it even sends the next click.
      *
-     * @return whether the deployer action did something
+     * <p>Nothing is reported back: the caller has already decided the click is the table's, and consumes it
+     * whether the deployer found work or not.
      */
-    public boolean deployerUse(Player player, InteractionHand hand, BlockHitResult hit) {
+    public void deployerUse(Player player, InteractionHand hand, BlockHitResult hit) {
         if (level == null || level.isClientSide)
-            return false;
-        return DeployerActions.deploy(level, this, player, hand, hit);
+            return;
+        DeployerActions.deploy(level, this, player, hand, hit);
     }
 }

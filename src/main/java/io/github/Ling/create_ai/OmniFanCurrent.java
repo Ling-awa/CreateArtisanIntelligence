@@ -68,6 +68,8 @@ import net.minecraft.world.phys.Vec3;
  * <p>State lives per side and per player, in two maps: a client and its integrated server share one JVM, so a
  * single map would let one side's current be stepped by the other's ticks.
  */
+// A Level is AutoCloseable, and a level read through here is never this mod's to close.
+@SuppressWarnings("resource")
 public final class OmniFanCurrent implements AirFlowSource {
 
     /** How far the fan reaches, in blocks — the same reach the axis-aligned flow has. */
@@ -329,8 +331,8 @@ public final class OmniFanCurrent implements AirFlowSource {
                 continue;
 
             // A fan held in a hand only ever pushes. Create's current is a pushing one when its flow direction
-            // matches its origin side, which for us it always does, so there is no pull to reverse here.
-            Vec3 flow = direction;
+            // matches its origin side, which for us it always does, so there is no pull to reverse here and
+            // the push is along the flow's own direction.
             float speed = Math.abs(FanCurrent.SPEED);
             float sneakModifier = entity.isShiftKeyDown() ? 4096f : 512f;
             // Create has this same division by the distance from the source; the guard is only for the case of
@@ -342,11 +344,11 @@ public final class OmniFanCurrent implements AirFlowSource {
             float maxAcceleration = 5;
 
             double xIn =
-                Mth.clamp(flow.x * acceleration - previousMotion.x, -maxAcceleration, maxAcceleration);
+                Mth.clamp(direction.x * acceleration - previousMotion.x, -maxAcceleration, maxAcceleration);
             double yIn =
-                Mth.clamp(flow.y * acceleration - previousMotion.y, -maxAcceleration, maxAcceleration);
+                Mth.clamp(direction.y * acceleration - previousMotion.y, -maxAcceleration, maxAcceleration);
             double zIn =
-                Mth.clamp(flow.z * acceleration - previousMotion.z, -maxAcceleration, maxAcceleration);
+                Mth.clamp(direction.z * acceleration - previousMotion.z, -maxAcceleration, maxAcceleration);
 
             entity.setDeltaMovement(previousMotion.add(new Vec3(xIn, yIn, zIn).scale(1 / 8f)));
             entity.fallDistance = 0;

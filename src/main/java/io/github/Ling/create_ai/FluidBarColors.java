@@ -25,6 +25,9 @@ import net.neoforged.neoforge.fluids.FluidStack;
  * is reached only from the item's bar color, which is drawn by the GUI. The answer is cached per
  * fluid, since a texture cannot change while the game is running and the bar is redrawn every frame.
  */
+// A SpriteContents is AutoCloseable, and a sprite read here belongs to the texture atlas: nothing here owns
+// one, and closing it would tear the atlas down under every other renderer.
+@SuppressWarnings("resource")
 final class FluidBarColors {
 
     /** No usable answer: the texture is missing, or every pixel of it is transparent. */
@@ -49,16 +52,14 @@ final class FluidBarColors {
     }
 
     private static int sample(FluidStack stack) {
+        // Neither of the two reads below can answer null: a bar is drawn by a GUI, so the client exists and
+        // its atlas is up, and a fluid type always names a still texture. The null guards an earlier version
+        // carried here were dead code, and are gone.
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft == null)
-            return UNKNOWN;
-
-        IClientFluidTypeExtensions extensions = IClientFluidTypeExtensions.of(stack.getFluidType());
-        ResourceLocation still = extensions.getStillTexture(stack);
-        if (still == null)
-            return UNKNOWN;
         // Fluid textures are stitched into the block atlas — the same atlas Create's own fluid
         // renderer reads them from.
+        ResourceLocation still = IClientFluidTypeExtensions.of(stack.getFluidType())
+            .getStillTexture(stack);
         TextureAtlasSprite sprite = minecraft.getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
             .apply(still);
         if (sprite == null)

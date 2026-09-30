@@ -1,7 +1,5 @@
 package io.github.Ling.create_ai;
 
-import org.jetbrains.annotations.Nullable;
-
 import com.mojang.serialization.DataResult;
 import com.simibubi.create.content.logistics.filter.FilterItemStack;
 
@@ -74,9 +72,10 @@ public final class SawFilterSlotItem {
      * components a filter keeps its contents in — is written out with {@code ItemStack.CODEC} and read
      * back by {@link #installed}, so it survives.
      *
-     * <p>A stack that cannot be written out is not installed at all, and the slot keeps what it had.
+     * <p>A stack that cannot be written out is not installed at all, and the slot keeps what it had. What
+     * comes back is always a stack — {@link ItemStack#EMPTY} when there was nothing in the slot — so the
+     * caller has no null to test for.
      */
-    @Nullable
     public static ItemStack install(ItemStack saw, ItemStack filter, HolderLookup.Provider registries) {
         if (filter.isEmpty())
             return installed(saw, registries);

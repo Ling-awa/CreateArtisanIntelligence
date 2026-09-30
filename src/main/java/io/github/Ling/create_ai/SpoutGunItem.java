@@ -3,6 +3,8 @@ package io.github.Ling.create_ai;
 import java.util.List;
 import java.util.function.Consumer;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.simibubi.create.AllSoundEvents;
@@ -13,6 +15,7 @@ import com.simibubi.create.content.logistics.depot.DepotBlockEntity;
 import net.createmod.catnip.data.Pair;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -95,6 +98,8 @@ import net.neoforged.neoforge.fluids.capability.templates.FluidHandlerItemStack;
  * color follows the fluid (see {@link #resolveBarColor}), black and empty when there is nothing in
  * it, plus the tooltip.
  */
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 @EventBusSubscriber(modid = Create_ai.MODID)
 public class SpoutGunItem extends Item {
 
@@ -160,7 +165,7 @@ public class SpoutGunItem extends Item {
             || !player.mayUseItemAt(pos.relative(hit.getDirection()), hit.getDirection(), gun))
             return InteractionResultHolder.pass(gun);
 
-        if (!pickUpFluid(level, player, gun, pos, hit.getDirection(), hand))
+        if (cannotPickUpFluid(level, player, gun, pos, hit.getDirection(), hand))
             return InteractionResultHolder.pass(gun);
         return InteractionResultHolder.sidedSuccess(player.getItemInHand(hand), level.isClientSide);
     }
@@ -203,7 +208,7 @@ public class SpoutGunItem extends Item {
             || !player.mayUseItemAt(pos.relative(context.getClickedFace()), context.getClickedFace(), gun))
             return InteractionResult.PASS;
 
-        if (!pickUpFluid(level, player, gun, pos, context.getClickedFace(), context.getHand()))
+        if (cannotPickUpFluid(level, player, gun, pos, context.getClickedFace(), context.getHand()))
             return InteractionResult.PASS;
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
@@ -212,14 +217,14 @@ public class SpoutGunItem extends Item {
      * Bucket-style pickup at one position. Create's helper removes the fluid (and the block, for a
      * fluid source) but plays no sound, so that part is done here, exactly as a bucket does.
      *
-     * @return whether fluid was taken
+     * @return whether nothing could be taken
      */
-    private static boolean pickUpFluid(Level level, Player player, ItemStack gun, BlockPos pos, Direction side,
-                                       InteractionHand hand) {
+    private static boolean cannotPickUpFluid(Level level, Player player, ItemStack gun, BlockPos pos, Direction side,
+                                             InteractionHand hand) {
         BlockState target = level.getBlockState(pos);
         FluidActionResult picked = FluidUtil.tryPickUpFluid(gun, player, level, pos, side);
         if (!picked.isSuccess())
-            return false;
+            return true;
 
         if (!level.isClientSide) {
             if (target.getBlock() instanceof BucketPickup pickup)
@@ -229,7 +234,7 @@ public class SpoutGunItem extends Item {
             // item, so the stack in hand is replaced rather than mutated.
             player.setItemInHand(hand, picked.getResult());
         }
-        return true;
+        return false;
     }
 
     // --- purge: sneak and hold the use key --------------------------------------------------------
@@ -467,7 +472,7 @@ public class SpoutGunItem extends Item {
         // push what changed back (see CreativeSlotSync). A click the server does see must not also be
         // answered here — the fluid would move twice.
         boolean clientSide = level.isClientSide;
-        if (clientSide && !CreativeSlotSync.isCreativeScreenClick(player))
+        if (clientSide && CreativeSlotSync.isNotCreativeScreenClick(player))
             return;
 
         Transfer transfer = moveFluid(level, carriedOne, stackedOnOne);

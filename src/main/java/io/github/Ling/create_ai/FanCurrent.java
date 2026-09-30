@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 import com.simibubi.create.content.kinetics.fan.AirCurrent;
 import com.simibubi.create.content.kinetics.fan.IAirCurrentSource;
@@ -12,6 +13,7 @@ import com.simibubi.create.content.kinetics.fan.processing.FanProcessing;
 import com.simibubi.create.content.kinetics.fan.processing.FanProcessingType;
 
 import net.createmod.catnip.math.VecHelper;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
@@ -55,6 +57,10 @@ import net.minecraft.world.phys.Vec3;
  * on purpose — see {@link #MODE} for the switch between the two, and for which one the fan uses. Nothing here
  * is dead: flipping that single constant puts the fan back on this flow.
  */
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
+// A Level is AutoCloseable, and a level read through here is never this mod's to close.
+@SuppressWarnings("resource")
 public final class FanCurrent implements IAirCurrentSource, AirFlowSource {
 
     /**
@@ -197,7 +203,12 @@ public final class FanCurrent implements IAirCurrentSource, AirFlowSource {
     /**
      * The current this player is blowing with, whichever kind it is, or null. Package-private: for tests
      * and probes, which need one entry point rather than three.
+     *
+     * <p>Kept although nothing in the mod calls it: it is the one place that answers "what is this player
+     * blowing with" without the caller having to know which of the three flows is live, which is what a
+     * probe wants. Suppressed rather than deleted so the entry point survives a "no dead code" pass.
      */
+    @SuppressWarnings("unused")
     @Nullable
     static Object activeOf(Player player) {
         Object nozzle = NozzleFanCurrent.active(player);

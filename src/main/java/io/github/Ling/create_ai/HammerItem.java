@@ -1,8 +1,13 @@
 package io.github.Ling.create_ai;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
+import org.jetbrains.annotations.Nullable;
+
 import com.simibubi.create.content.logistics.depot.DepotBlockEntity;
 import com.simibubi.create.content.processing.basin.BasinBlockEntity;
 
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -42,6 +47,8 @@ import net.minecraft.world.level.Level;
  * <p>The table refuses to accept this item (see {@link ProcessingTableBlock}), so a right-click strikes
  * instead of putting the hammer down.
  */
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 public class HammerItem extends Item {
 
     /** How long the hands are held after a press lands: half a second. */
@@ -64,11 +71,6 @@ public class HammerItem extends Item {
     protected HammerItem(Properties properties, HammerToolActions.Grind grind) {
         super(properties);
         this.grind = grind;
-    }
-
-    /** The grind a sneaking strike runs with this hammer. */
-    public HammerToolActions.Grind grind() {
-        return grind;
     }
 
     /** The block-targeted path — this is the one a right-click on a depot or basin takes. */
@@ -121,13 +123,13 @@ public class HammerItem extends Item {
      * <p>Everything but the recipe type is the press's own machinery — Create's recipe search over the
      * one type, Create's own application of the recipe with its chanced outputs rolled, and the depot's
      * own routing for the products. The two hammers differ in exactly one thing, which is
-     * {@link #grind()}, and it is handed straight to {@link HammerToolActions}.
+     * {@link #grind}, and it is handed straight to {@link HammerToolActions}.
      *
      * <p>The client shows the same item fragments a press throws, at the item's own position on the
      * depot: what a mill and a crusher both look like from the outside is pieces of what they are fed.
      */
     private InteractionResult strikeGrind(Level level, Player player, DepotBlockEntity depot) {
-        if (depot == null || !HammerToolActions.canGrind(depot, grind))
+        if (HammerToolActions.cannotGrind(depot, grind))
             // Answered, but with no swing: there is nothing here for the hammer to grind.
             return InteractionResult.CONSUME;
         if (level.isClientSide) {
@@ -142,9 +144,7 @@ public class HammerItem extends Item {
 
     /** One strike on a depot: the recipe, Create's sound, and the crush where the item sits. */
     private static InteractionResult strikeDepot(Level level, Player player, DepotBlockEntity depot) {
-        if (depot == null)
-            return InteractionResult.PASS;
-        if (!DepotToolActions.canPress(depot))
+        if (DepotToolActions.cannotPress(depot))
             // Answered, but with no swing: there is nothing here for the hammer to do.
             return InteractionResult.CONSUME;
         if (level.isClientSide) {
@@ -160,7 +160,7 @@ public class HammerItem extends Item {
     }
 
     /** The same for a basin, where the press compresses what the basin holds. */
-    private static InteractionResult strikeBasin(Level level, Player player, BasinBlockEntity basin) {
+    private static InteractionResult strikeBasin(Level level, Player player, @Nullable BasinBlockEntity basin) {
         if (basin == null)
             return InteractionResult.PASS;
         if (!BasinToolActions.canPress(basin))

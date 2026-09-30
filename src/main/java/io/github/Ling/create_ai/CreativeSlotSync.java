@@ -41,17 +41,18 @@ final class CreativeSlotSync {
     }
 
     /**
-     * Whether this click is the creative inventory's own — the one click the client has to answer itself.
+     * Whether this click is <em>not</em> the creative inventory's own — the one click the client has to
+     * answer itself, and so the one the server-side handlers must leave alone.
      *
      * <p>The screen, not the game mode, is what decides. In creative the click is still sent to the server
      * everywhere else (a chest, a machine's menu), and both sides would then apply the interaction, once per
      * side. Only the creative screen swallows the click whole.
      */
-    static boolean isCreativeScreenClick(Player player) {
+    static boolean isNotCreativeScreenClick(Player player) {
         if (!player.hasInfiniteMaterials())
-            return false;
+            return true;
         Minecraft minecraft = Minecraft.getInstance();
-        return minecraft != null && minecraft.screen instanceof CreativeModeInventoryScreen;
+        return !(minecraft.screen instanceof CreativeModeInventoryScreen);
     }
 
     /**

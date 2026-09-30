@@ -40,7 +40,7 @@ import net.minecraft.world.level.Level;
  * <p>So a hammer held against a basin is the press's basin mode without the press: the same
  * judgment, the same recipe, the same sound, and the same item particles rising off what is in it.
  *
- * <p>Stirring is the same idea for the mixer: {@link #canMix} and {@link #stirTick} run the mixer's
+ * <p>Stirring is the same idea for the mixer: {@link #cannotMix} and {@link #stirTick} run the mixer's
  * recipes on the mixer's rhythm, and the basin's contents are stirred by the basin itself (see
  * {@link MixingCycle#contentsMoving}).
  */
@@ -161,11 +161,12 @@ public final class BasinToolActions {
     // --- stirring, with Create's mixer's judgment -------------------------------------------------
 
     /**
-     * Whether stirring would do something here: a recipe the mixer can run matches what is in the
-     * basin. Null-tolerant, like the press's check.
+     * Whether stirring would do nothing here: no basin, or nothing in it a mixing recipe applies to.
+     * Null-tolerant, like the press's check, and phrased as the failure for the same reason the depot's
+     * checks are.
      */
-    public static boolean canMix(@Nullable BasinBlockEntity basin) {
-        return basin != null && mixingRecipe(basin) != null;
+    public static boolean cannotMix(@Nullable BasinBlockEntity basin) {
+        return basin == null || mixingRecipe(basin) == null;
     }
 
     /**

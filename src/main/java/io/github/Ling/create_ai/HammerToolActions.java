@@ -79,17 +79,6 @@ public final class HammerToolActions {
         CRUSHING;
 
         /**
-         * This grind's first recipe type — the one its name is about.
-         *
-         * <p>Looked up when a strike runs rather than kept in a field: Create's recipe types are
-         * registered, so a field would ask for one while this class is loading, which may be before the
-         * register event has run.
-         */
-        public RecipeType<?> recipeType() {
-            return this == MILLING ? AllRecipeTypes.MILLING.getType() : AllRecipeTypes.CRUSHING.getType();
-        }
-
-        /**
          * The recipe types a strike searches, in the order Create's own machine searches them.
          *
          * <p>The crushing wheels are why this is a list rather than one type.
@@ -109,17 +98,19 @@ public final class HammerToolActions {
     // --- grinding --------------------------------------------------------------------------------
 
     /**
-     * Whether a grind would do something: an item on the depot that a recipe of this grind's type
-     * applies to.
+     * Whether a grind would do nothing: no item on the depot, or nothing a recipe of this grind's type
+     * applies to. Phrased as the failure so the callers, which all ask it before a strike, can read it
+     * straight.
      *
-     * <p>Null-tolerant on purpose: "there is no depot" is an ordinary answer here.
+     * <p>Null-tolerant on purpose: "there is no depot" is an ordinary answer here, and it is an answer
+     * of "nothing to grind".
      */
-    public static boolean canGrind(@Nullable DepotBlockEntity depot, Grind grind) {
+    public static boolean cannotGrind(@Nullable DepotBlockEntity depot, Grind grind) {
         if (depot == null)
-            return false;
+            return true;
         Level level = depot.getLevel();
         ItemStack input = depot.getHeldItem();
-        return level != null && !input.isEmpty() && !recipesFor(level, input, grind).isEmpty();
+        return level == null || input.isEmpty() || recipesFor(level, input, grind).isEmpty();
     }
 
     /**
@@ -135,7 +126,7 @@ public final class HammerToolActions {
         if (depot == null)
             return false;
         Level level = depot.getLevel();
-        if (level == null || level.isClientSide || !canGrind(depot, grind))
+        if (level == null || level.isClientSide || cannotGrind(depot, grind))
             return false;
         TransportedItemStackHandlerBehaviour handler = depot.getBehaviour(TransportedItemStackHandlerBehaviour.TYPE);
         if (handler == null)
@@ -146,7 +137,7 @@ public final class HammerToolActions {
         List<RecipeHolder<? extends Recipe<?>>> recipes = recipesFor(level, depot.getHeldItem(), grind);
         if (recipes.isEmpty())
             return false;
-        Recipe<?> recipe = recipes.get(0)
+        Recipe<?> recipe = recipes.getFirst()
             .value();
 
         boolean[] ran = { false };
@@ -200,7 +191,8 @@ public final class HammerToolActions {
      * <p>{@link RecipeApplier} is asked to apply the recipe to a single item, which is Create's own
      * application of a processing recipe and the place a chanced output is rolled — one roll, because
      * one item is ground. What the input is owed as a crafting remainder is added after it, exactly as
-     * the saw adds it.
+     * the saw adds it: asked of the stack, which is the ItemStack-sensitive form NeoForge provides and
+     * the one that answers with an empty stack rather than a nullable item.
      */
     public static List<ItemStack> resultsOf(Level level, ItemStack input, Recipe<?> recipe) {
         List<ItemStack> list = new ArrayList<>();
@@ -208,10 +200,9 @@ public final class HammerToolActions {
             if (!stack.isEmpty())
                 ItemHelper.addToList(stack.copy(), list);
         }
-        if (input.getItem()
-            .hasCraftingRemainingItem())
-            ItemHelper.addToList(new ItemStack(input.getItem()
-                .getCraftingRemainingItem()), list);
+        ItemStack remainder = input.getCraftingRemainingItem();
+        if (!remainder.isEmpty())
+            ItemHelper.addToList(remainder, list);
         return list;
     }
 

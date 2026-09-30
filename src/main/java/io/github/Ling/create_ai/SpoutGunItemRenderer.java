@@ -54,6 +54,9 @@ import net.neoforged.neoforge.fluids.FluidStack;
  * which NeoForge calls while the client is starting up — early enough that the partial model above is
  * baked along with the rest.
  */
+// A SpriteContents is AutoCloseable, and a sprite read here belongs to the texture atlas: nothing in this
+// renderer owns one, and closing it would tear the atlas down under every other renderer.
+@SuppressWarnings("resource")
 public class SpoutGunItemRenderer extends CustomRenderedItemModelRenderer {
 
     /** The cog, as a model of its own — the second file the artist shipped next to the gun's body. */
@@ -117,10 +120,9 @@ public class SpoutGunItemRenderer extends CustomRenderedItemModelRenderer {
         if (fluid.isEmpty())
             return;
 
+        // A fluid type always names a still texture, so there is no "no texture" case to guard against.
         IClientFluidTypeExtensions extensions = IClientFluidTypeExtensions.of(fluid.getFluidType());
         ResourceLocation still = extensions.getStillTexture(fluid);
-        if (still == null)
-            return;
 
         // Fluid textures are stitched into the block atlas — the same atlas Create's own fluid renderer
         // reads them from.

@@ -170,7 +170,10 @@ final class SocketCatalyst {
 
         // There is something to ask about only when the item stands for a block or for a fluid. A plain item
         // answers no catalyst, and asking about it as air would let a type that accepts air claim the socket.
-        boolean askable = state != null || !carried.isEmpty() || held != null && !held.isEmpty();
+        //
+        // The block's own fluid needs no clause of its own: it is read off the block state, so it can only be
+        // there when the block is, and the first clause has already answered for that case.
+        boolean askable = state != null || !carried.isEmpty();
         BlockState askedState = state == null ? AIR : state;
 
         for (FanProcessingType type : FanProcessingTypeRegistry.SORTED_TYPES_VIEW) {

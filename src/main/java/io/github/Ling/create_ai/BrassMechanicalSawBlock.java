@@ -1,10 +1,13 @@
 package io.github.Ling.create_ai;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 import com.simibubi.create.content.kinetics.saw.SawBlock;
 import com.simibubi.create.content.kinetics.saw.SawBlockEntity;
 
 import net.createmod.catnip.placement.IPlacementHelper;
 import net.createmod.catnip.placement.PlacementHelpers;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -41,6 +44,8 @@ import net.minecraft.world.phys.BlockHitResult;
  * <p>The behaviour deviations live in {@link BrassMechanicalSawBlockEntity} (processing speed and stress)
  * and {@link BrassMechanicalSawMovementBehaviour} (breaking speed and precision cutting).
  */
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 public class BrassMechanicalSawBlock extends SawBlock {
 
     /** Index into {@link BrassMechanicalSawMode}. {@code 0} is the default, fast tree felling. */

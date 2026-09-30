@@ -96,27 +96,28 @@ public final class DepotToolActions {
      * <p>The fluid taken is worked out from what the fill actually consumed rather than from the
      * amount asked for, so the gun is debited by exactly what went into the item.
      *
-     * @return whether any fluid moved
+     * <p>Nothing is reported back, because nothing is asked: the pour either happened or it did not,
+     * and the caller that started the hold has nothing to do with either answer.
      */
-    public static boolean spoutWith(@Nullable DepotBlockEntity depot, ItemStack gun) {
+    public static void spoutWith(@Nullable DepotBlockEntity depot, ItemStack gun) {
         if (depot == null)
-            return false;
+            return;
         Level level = depot.getLevel();
         if (level == null || level.isClientSide)
-            return false;
+            return;
         TransportedItemStackHandlerBehaviour handler = depot.getBehaviour(TransportedItemStackHandlerBehaviour.TYPE);
         if (handler == null)
-            return false;
+            return;
 
         FluidStack available = SpoutGunItem.getFluid(gun);
         if (requiredFluidFor(level, depot.getHeldItem(), available) == -1)
-            return false;
+            return;
 
         int before = available.getAmount();
         handler.handleProcessingOnAllItems(transported -> spoutResult(level, transported, available));
         int used = before - available.getAmount();
         if (used <= 0)
-            return false;
+            return;
 
         SpoutGunItem.drain(gun, used);
         // The sound Create's spout makes, with its own volume and pitch jitter. The splash that goes
@@ -125,7 +126,6 @@ public final class DepotToolActions {
             0.9f + 0.2f * level.getRandom()
                 .nextFloat());
         depot.notifyUpdate();
-        return true;
     }
 
     /**
@@ -171,16 +171,19 @@ public final class DepotToolActions {
     // --- pressing, with Create's press's recipe chain and routing --------------------------------
 
     /**
-     * Whether a press with a tool would do something: an item that a pressing recipe applies to.
+     * Whether a press with a tool would do nothing: nothing on the depot, or nothing a pressing recipe
+     * applies to. Phrased as the failure so the callers, which all ask it before a strike, can read it
+     * straight.
      *
-     * <p>Null-tolerant on purpose: "there is no depot" is an ordinary answer here.
+     * <p>Null-tolerant on purpose: "there is no depot" is an ordinary answer here, and it is an answer
+     * of "nothing to press".
      */
-    public static boolean canPress(@Nullable DepotBlockEntity depot) {
+    public static boolean cannotPress(@Nullable DepotBlockEntity depot) {
         if (depot == null)
-            return false;
+            return true;
         Level level = depot.getLevel();
         ItemStack cargo = depot.getHeldItem();
-        return level != null && !cargo.isEmpty() && pressRecipe(level, cargo).isPresent();
+        return level == null || cargo.isEmpty() || pressRecipe(level, cargo).isEmpty();
     }
 
     /**
@@ -197,7 +200,7 @@ public final class DepotToolActions {
         if (depot == null)
             return false;
         Level level = depot.getLevel();
-        if (level == null || level.isClientSide || !canPress(depot))
+        if (level == null || level.isClientSide || cannotPress(depot))
             return false;
         TransportedItemStackHandlerBehaviour handler = depot.getBehaviour(TransportedItemStackHandlerBehaviour.TYPE);
         if (handler == null)
@@ -234,7 +237,7 @@ public final class DepotToolActions {
             return null;
 
         List<ItemStack> results = new ArrayList<>();
-        if (!tryProcessOnBelt(level, transported, results, false))
+        if (!tryProcessOnBelt(level, transported, results))
             return null;
 
         boolean bulk = bulkPressing() || transported.stack.getCount() == 1;
@@ -267,13 +270,10 @@ public final class DepotToolActions {
      * The press's own extension point, implemented the way {@code MechanicalPressBlockEntity} does it:
      * read the recipe through the press's chain, then apply it with {@code RecipeApplier}.
      */
-    private static boolean tryProcessOnBelt(Level level, TransportedItemStack input, List<ItemStack> outputList,
-                                            boolean simulate) {
+    private static boolean tryProcessOnBelt(Level level, TransportedItemStack input, List<ItemStack> outputList) {
         Optional<RecipeHolder<PressingRecipe>> recipe = pressRecipe(level, input.stack);
         if (recipe.isEmpty())
             return false;
-        if (simulate)
-            return true;
         outputList.addAll(RecipeApplier.applyRecipeOn(level,
             bulkPressing() ? input.stack : input.stack.copyWithCount(1), recipe.get()
                 .value(),

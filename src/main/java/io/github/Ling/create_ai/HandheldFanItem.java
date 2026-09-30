@@ -2,12 +2,15 @@ package io.github.Ling.create_ai;
 
 import java.util.List;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+
 import org.jetbrains.annotations.Nullable;
 
 import com.simibubi.create.api.registry.CreateBuiltInRegistries;
 import com.simibubi.create.content.kinetics.fan.processing.FanProcessingType;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.MethodsReturnNonnullByDefault;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -62,7 +65,11 @@ import net.neoforged.neoforge.event.ItemStackedOnOtherEvent;
  * campfire block's default state, which is unlit, and the tag fallback is what keeps such a block resolving
  * as it always did. {@link SocketCatalyst} carries the whole of that reasoning.
  */
+@ParametersAreNonnullByDefault
+@MethodsReturnNonnullByDefault
 @EventBusSubscriber(modid = Create_ai.MODID)
+// A Level is AutoCloseable, and a level read through here is never this mod's to close.
+@SuppressWarnings("resource")
 public class HandheldFanItem extends Item {
 
     /**
@@ -244,7 +251,7 @@ public class HandheldFanItem extends Item {
 
         Player player = event.getPlayer();
         boolean clientSide = player.level().isClientSide;
-        if (clientSide && !CreativeSlotSync.isCreativeScreenClick(player))
+        if (clientSide && CreativeSlotSync.isNotCreativeScreenClick(player))
             return;
 
         ItemStack stackedOn = event.getStackedOnItem();
