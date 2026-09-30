@@ -31,8 +31,12 @@ public final class ItemTooltips {
         describe(Create_ai.PROCESSING_TABLE_ITEM.get());
         describe(Create_ai.BRASS_MECHANICAL_SAW_ITEM.get());
         describe(Create_ai.HAMMER.get());
+        describe(Create_ai.OBSIDIAN_HAMMER.get());
         describe(Create_ai.SPOUT_GUN.get());
         describe(Create_ai.STIRRING_ROD.get());
+        describe(Create_ai.HANDHELD_FAN.get());
+        describe(Create_ai.HANDHELD_MECHANICAL_SAW.get());
+        describe(Create_ai.LOUPE.get());
     }
 
     private static void describe(Item item) {

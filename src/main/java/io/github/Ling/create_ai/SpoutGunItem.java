@@ -6,7 +6,11 @@ import java.util.function.Consumer;
 import org.jetbrains.annotations.Nullable;
 
 import com.simibubi.create.AllSoundEvents;
+import com.simibubi.create.content.fluids.spout.FillingBySpout;
+import com.simibubi.create.content.fluids.transfer.GenericItemEmptying;
 import com.simibubi.create.content.logistics.depot.DepotBlockEntity;
+
+import net.createmod.catnip.data.Pair;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
@@ -73,7 +77,12 @@ import net.neoforged.neoforge.fluids.capability.templates.FluidHandlerItemStack;
  *     nothing when it hits nothing), while {@link #useOn} covers the blocks that <em>do</em> produce
  *     a hit and hold fluid — cauldrons, tanks, anything exposing a block fluid handler;</li>
  * <li>in the inventory, right-clicking one stack onto another moves fluid between them, the way a
- *     bundle works, driven by {@link ItemStackedOnOtherEvent};</li>
+ *     bundle works, driven by {@link ItemStackedOnOtherEvent}. Emptying goes through Create's own
+ *     generic item emptying — {@link GenericItemEmptying}, the class Create's item drain calls — and
+ *     filling through {@link FillingBySpout}, the entry point Create's spout itself calls, which is
+ *     what puts potions, splash potions, honey bottles, water bottles, buckets and anything else
+ *     Create knows how to fill or empty on the same footing, with no per-fluid code here (see
+ *     {@link #moveFluid});</li>
  * <li>Create's spout fills and empties it through the capability.</li>
  * </ol>
  *
@@ -275,35 +284,153 @@ public class SpoutGunItem extends Item {
     public record Transfer(FluidStack moved, ItemStack source, ItemStack destination) {
     }
 
-    /** Whether any fluid could move from {@code source} into {@code destination}. */
-    public static boolean canMoveFluid(ItemStack source, ItemStack destination) {
-        return FluidUtil.getFluidHandler(destination)
-            .flatMap(destinationHandler -> FluidUtil.getFluidHandler(source)
-                .map(sourceHandler -> FluidUtil
-                    .tryFluidTransfer(destinationHandler, sourceHandler, Integer.MAX_VALUE, false)
-                    .getAmount() > 0))
-            .orElse(false);
+    /**
+     * Whether any fluid could move from {@code source} into {@code destination}, asked of the same code
+     * that would do the transfer, so the preview and the transfer can never disagree. The answer covers
+     * both halves of a transfer — that there is fluid to move at all, and that the whole amount fits where
+     * it is going.
+     *
+     * <p>The level is the one the recipe lookup needs: Create decides what a honey bottle or a potion
+     * gives up, and what an item takes, by looking recipes up in it.
+     */
+    public static boolean canMoveFluid(Level level, ItemStack source, ItemStack destination) {
+        // Whether the whole transfer would happen, asked of the same code that would do it, so the
+        // preview and the transfer can never disagree.
+        if (destination.is(Create_ai.SPOUT_GUN.get()))
+            return emptyIntoGun(level, source, destination, true) != null;
+        if (source.is(Create_ai.SPOUT_GUN.get()))
+            return fillFromGun(level, source, destination, true) != null;
+        return false;
     }
 
     /**
-     * Moves as much fluid as fits from one stack into another through their item fluid handlers.
+     * Moves one item's worth of fluid from one stack into another: out of an item through Create's own
+     * generic emptying, and into one through {@link FillingBySpout}.
      *
+     * <p>Filling has to be {@link FillingBySpout} rather than {@code GenericItemFilling}, and that is the
+     * whole point of this method. Create's spout fills an item from either of two places: the item's own
+     * fluid handler, which {@code GenericItemFilling} is the wrapper for, or a Create filling recipe, which
+     * only {@code FillingBySpout} looks at. A glass bottle has no fluid handler at all — what makes it a
+     * honey bottle is the filling recipe — so a gun that asked {@code GenericItemFilling} refused the very
+     * pour a spout would perform. Asking {@code FillingBySpout} makes the inventory path agree with the
+     * depot path ({@link DepotToolActions}, which has always gone through it): honey, and every modded
+     * filling recipe, works in both.
+     *
+     * <p>Emptying stays on {@code GenericItemEmptying}, which is the class Create's item drain and its
+     * spout's emptying recipe path both use — it knows that a honey bottle gives up honey and hands the
+     * glass bottle back as the second half of its answer.
+     *
+     * <p>One item at a time. The stack handed in may be a stack of many, so each side is worked as a
+     * one-item copy: exactly one item is emptied, or exactly one is filled, and the caller writes the
+     * result back over the original stack.
+     *
+     * @param level the level the recipe lookup needs; it may be a server or a client level, and Create's
+     *              own recipe caches answer on either
      * @return null when nothing moved
      */
     @Nullable
-    public static Transfer moveFluid(ItemStack source, ItemStack destination) {
-        IFluidHandlerItem sourceHandler = FluidUtil.getFluidHandler(source)
-            .orElse(null);
-        IFluidHandlerItem destinationHandler = FluidUtil.getFluidHandler(destination)
-            .orElse(null);
-        if (sourceHandler == null || destinationHandler == null)
+    public static Transfer moveFluid(Level level, ItemStack source, ItemStack destination) {
+        if (destination.is(Create_ai.SPOUT_GUN.get()))
+            return emptyIntoGun(level, source, destination, false);
+        if (source.is(Create_ai.SPOUT_GUN.get()))
+            return fillFromGun(level, source, destination, false);
+        return null;
+    }
+
+    /**
+     * An item emptying into the gun, the way Create's item drain empties one into its tank: ask whether
+     * there is anything to empty, work the answer out on a copy first, and only commit when the whole
+     * amount fits.
+     *
+     * <p>The whole amount, not a part of it: {@link GenericItemEmptying#emptyItem} reports what the item
+     * gives up as one indivisible answer — the honey bottle becomes a glass bottle whether the tank has
+     * room for all 250 mB or not — so a simulated run that does not fit is simply refused here, exactly
+     * as the drain refuses to process the item.
+     *
+     * @param simulate whether to work the answer out without touching the stacks handed in
+     * @return null when the item cannot be emptied into the gun
+     */
+    @Nullable
+    private static Transfer emptyIntoGun(Level level, ItemStack source, ItemStack gun, boolean simulate) {
+        if (!GenericItemEmptying.canItemBeEmptied(level, source))
             return null;
 
-        FluidStack moved =
-            FluidUtil.tryFluidTransfer(destinationHandler, sourceHandler, Integer.MAX_VALUE, true);
+        // The item being emptied is a copy, and the simulation works on that copy: generic emptying
+        // mutates the stack it is handed, so nothing the caller owns is touched before a commit.
+        Pair<FluidStack, ItemStack> emptied = GenericItemEmptying.emptyItem(level, source.copyWithCount(1), true);
+        FluidStack fluid = emptied.getFirst();
+        if (fluid.isEmpty())
+            return null;
+
+        IFluidHandlerItem tank = FluidUtil.getFluidHandler(gun.copyWithCount(1))
+            .orElse(null);
+        if (tank == null || tank.fill(fluid, IFluidHandler.FluidAction.SIMULATE) < fluid.getAmount())
+            return null;
+        if (simulate)
+            // Nothing was touched, so both sides are handed back as they came in.
+            return new Transfer(fluid, source.copyWithCount(1), gun.copyWithCount(1));
+
+        // One item of the stack goes away, and what that one item turned into comes back as the second
+        // half of Create's answer. Generic emptying does not convert the stack it is handed: it shrinks
+        // that stack by one and hands the container back separately, so the container has to be taken from
+        // the pair. The stack handed in is the caller's one-item view (see moveFluid) and the write-back
+        // puts a single item in its place, so the two agree. Generic emptying only ever touches the copy it
+        // is given, never the caller's stack.
+        ItemStack emptiedStack = source.copyWithCount(Math.max(1, source.getCount() - 1));
+        Pair<FluidStack, ItemStack> result = GenericItemEmptying.emptyItem(level, emptiedStack, false);
+        FluidStack moved = result.getFirst();
+        if (moved.isEmpty() || tank.fill(moved, IFluidHandler.FluidAction.EXECUTE) < moved.getAmount())
+            return null;
+        return new Transfer(moved, result.getSecond(), tank.getContainer());
+    }
+
+    /**
+     * The gun filling an item, the way Create's spout fills one from its tank: ask whether the item can be
+     * filled at all, work out how much of this particular fluid it needs, and hand the gun's fluid to
+     * Create to build the result. All three questions go to {@link FillingBySpout} — the same three
+     * {@link DepotToolActions} asks, which is what makes the two paths agree.
+     *
+     * <p>The amount is asked for before anything is touched, and the gun is debited by exactly that
+     * amount, so an item and a fluid that disagree about how much leaves the tank holding what it should.
+     * {@code FillingBySpout.fillItem} shrinks the item stack it is handed and the fluid stack it is
+     * handed to what was consumed; both are copies here, so nothing the caller owns is touched until the
+     * commit, and the tank is debited from its own handler rather than by rewriting the component, which
+     * is what keeps "the last drop removes the fluid type" true here as everywhere else.
+     *
+     * @param simulate whether to work the answer out without touching the stacks handed in
+     * @return null when the gun cannot fill the item with what it holds
+     */
+    @Nullable
+    private static Transfer fillFromGun(Level level, ItemStack gun, ItemStack destination, boolean simulate) {
+        FluidStack available = getFluid(gun);
+        if (available.isEmpty())
+            return null;
+        ItemStack item = destination.copyWithCount(1);
+        if (!FillingBySpout.canItemBeFilled(level, item))
+            return null;
+
+        int required = FillingBySpout.getRequiredAmountForItem(level, item, available.copy());
+        if (required <= 0 || required > available.getAmount())
+            return null;
+
+        IFluidHandlerItem tank = FluidUtil.getFluidHandler(gun.copyWithCount(1))
+            .orElse(null);
+        if (tank == null)
+            return null;
+
+        // Create's filling path shrinks the fluid stack it is handed to what the item consumed, which is
+        // how the caller knows what was used; the tank's own copy is passed so the real one is untouched.
+        FluidStack toFill = available.copy();
+        ItemStack filled = FillingBySpout.fillItem(level, required, item, toFill);
+        if (filled.isEmpty())
+            return null;
+        if (simulate)
+            return new Transfer(toFill.copy(), tank.getContainer(), filled);
+
+        FluidStack moved = tank.drain(required, IFluidHandler.FluidAction.EXECUTE);
         if (moved.isEmpty())
             return null;
-        return new Transfer(moved, sourceHandler.getContainer(), destinationHandler.getContainer());
+        return new Transfer(moved, tank.getContainer(), filled);
     }
 
     @SubscribeEvent
@@ -317,39 +444,70 @@ public class SpoutGunItem extends Item {
         if (event.getClickAction() != ClickAction.SECONDARY)
             return;
 
+        // The level the transfer is decided on, taken from the player the click belongs to. Create's two
+        // generic entry points both read it — for the emptying recipe lookup and for whether an item can
+        // be filled at all — and both sides of an inventory click happen in the player's own level, on the
+        // server for a real click and on the client for the creative screen's own.
+        Player player = event.getPlayer();
+        Level level = player.level();
+
         // One item at a time, worked out on a one-item view of each side. Buckets are the reason: a
         // bucket's fluid handler refuses to do anything unless it is holding exactly one item, so a
         // stack of empty buckets answers "cannot be filled" — and the click used to fall through to the
         // vanilla swap. NeoForge's own FluidUtil reads a single item out of a stack the same way.
         ItemStack carriedOne = carried.copyWithCount(1);
         ItemStack stackedOnOne = stackedOn.copyWithCount(1);
-        if (!canMoveFluid(carriedOne, stackedOnOne))
+        if (!canMoveFluid(level, carriedOne, stackedOnOne))
             // Nothing to move: leave the click to the vanilla container logic.
             return;
-        if (event.getPlayer()
-            .level().isClientSide)
+
+        // The side that does the transfer is the server, with the one exception the event is written
+        // around: the creative inventory's screen runs its own inventory menu locally and never sends a
+        // click packet, so the event is fired on the client there and the client has to answer it, then
+        // push what changed back (see CreativeSlotSync). A click the server does see must not also be
+        // answered here — the fluid would move twice.
+        boolean clientSide = level.isClientSide;
+        if (clientSide && !CreativeSlotSync.isCreativeScreenClick(player))
             return;
 
-        Transfer transfer = moveFluid(carriedOne, stackedOnOne);
+        Transfer transfer = moveFluid(level, carriedOne, stackedOnOne);
         if (transfer == null)
             return;
 
         // Both sides are written back, because both were worked on as copies: a single item is simply
         // replaced, and a stack is worked out by writeBack below.
-        Player player = event.getPlayer();
         writeBack(carried, transfer.source(), player, event.getCarriedSlotAccess()::set);
         writeBack(stackedOn, transfer.destination(), player, event.getSlot()::set);
         // Fluid moved: the vanilla swap must not also happen.
         event.setCanceled(true);
+        if (clientSide)
+            // Only the slot can be told to the server; a stack on the cursor has no packet that carries it
+            // (see CreativeSlotSync). Whichever of the two sides sat in a slot is the one pushed here.
+            CreativeSlotSync.pushSlot(player, event.getSlot());
 
         if (stackedOn.is(Create_ai.SPOUT_GUN.get()))
             // Something else emptied into the gun: that fluid's pouring sound.
             playPourSound(player, transfer.moved());
+        else if (clientSide)
+            // The gun did the pouring, so it sounds like Create's spout. This branch is the client
+            // answering a click of the creative screen's own, and nothing comes back to a client for an
+            // action it took itself, so the sound has to be raised here rather than waited for.
+            // SoundEntry#playAt is the client's half of the entry's own playSound.
+            AllSoundEvents.SPOUTING.playAt(player.level(), player.blockPosition(), 0.75f, spoutPitch(player),
+                false);
         else
             // The gun did the pouring, so it sounds like Create's spout.
-            AllSoundEvents.SPOUTING.playOnServer(player.level(), player.blockPosition(), 0.75f,
-                0.9f + 0.2f * player.getRandom()
-                    .nextFloat());
+            AllSoundEvents.SPOUTING.playOnServer(player.level(), player.blockPosition(), 0.75f, spoutPitch(player));
+    }
+
+    /**
+     * The pitch jitter Create gives a spout, drawn once per interaction so the two sides of the branch
+     * above agree on it: the server's pour and the creative client's are the same pour, heard in the same
+     * place.
+     */
+    private static float spoutPitch(Player player) {
+        return 0.9f + 0.2f * player.getRandom()
+            .nextFloat();
     }
 
     /**
@@ -374,11 +532,22 @@ public class SpoutGunItem extends Item {
     /**
      * Plays the sound of a fluid being poured, with the same fallback a bucket uses — see
      * {@link #pourSoundFor}.
+     *
+     * <p>Which half of the sound system is asked depends on the side. On the server the pour is broadcast
+     * to everyone nearby, which is how every other inventory interaction is heard. The client reaches this
+     * only for the creative screen's own click, and an action a client took itself is never announced back
+     * to it, so there the sound is played locally — {@code playLocalSound} is that half, and a no-op on a
+     * server, so the one call site covers both.
      */
     private static void playPourSound(Player player, FluidStack fluid) {
         Level level = player.level();
         SoundEvent sound = pourSoundFor(level, player, player.blockPosition(), fluid);
-        level.playSound(null, player.getX(), player.getY() + 0.5, player.getZ(), sound, SoundSource.PLAYERS, 1.0F, 1.0F);
+        if (level.isClientSide)
+            level.playLocalSound(player.getX(), player.getY() + 0.5, player.getZ(), sound, SoundSource.PLAYERS, 1.0F,
+                1.0F, false);
+        else
+            level.playSound(null, player.getX(), player.getY() + 0.5, player.getZ(), sound, SoundSource.PLAYERS, 1.0F,
+                1.0F);
     }
 
     /**

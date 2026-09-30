@@ -91,23 +91,42 @@ public class BrassMechanicalSawBlockEntity extends SawBlockEntity {
     /**
      * {@inheritDoc}
      *
-     * <p>Reports the cutting mode to a player wearing Create's engineer's goggles. The block entity
-     * already carries the rest of the overlay through {@code KineticBlockEntity}, which implements
-     * {@code IHaveGoggleInformation} and prints the kinetic stats; this adds the one line that is ours.
+     * <p>Adds the cutting mode <em>below</em> the kinetic stats, rather than replacing them. The parent
+     * implementation is what prints speed, stress and overstress — overriding without calling {@code super}
+     * left the overlay showing the mode alone and no kinetic data at all.
      *
-     * <p>The mode is read from the blockstate, so the overlay shows exactly what the contraption will use
+     * <p>{@code forGoggles} appends to the tooltip list, so calling the parent first and then this puts the
+     * mode last, under the base attributes.
+     *
+     * <p>The mode is read from the blockstate, so the overlay shows exactly what a contraption will use
      * when the saw is assembled.
      */
     @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
+        boolean added = super.addToGoggleTooltip(tooltip, isPlayerSneaking);
+
+        // CreateLang prefixes everything it looks up with "create." - CreateLang.builder() is
+        // new LangBuilder(Create.ID), and Create.ID is "create". So the key handed to it here is the
+        // version without the "create_ai." namespace, and the matching lang entries carry the "create."
+        // form. The mode name is a plain Component, and Component.translatable does NOT prefix, which is
+        // why the mode-name keys below exist in both spellings.
         CreateLang.translate(GOGGLES_MODE_KEY, getMode().getLabel())
             .style(ChatFormatting.GRAY)
             .forGoggles(tooltip);
+
+        // The mode is always shown, so the overlay is worth displaying even when the parent had nothing to
+        // say — a stopped saw off the network reports no kinetic stats, but its mode is still meaningful.
         return true;
     }
 
-    /** Goggle overlay label, e.g. "Cutting Mode: Fast Tree Felling". */
-    private static final String GOGGLES_MODE_KEY = "create_ai.brass_mechanical_saw.goggles.mode";
+    /**
+     * Goggle overlay label, e.g. "Cutting Mode: Fast Tree Felling".
+     *
+     * <p>Spelled without the mod namespace on purpose: {@code CreateLang} adds {@code create.} in front of
+     * it, so the key that ends up in the language file is
+     * {@code create.brass_mechanical_saw.goggles.mode}.
+     */
+    private static final String GOGGLES_MODE_KEY = "brass_mechanical_saw.goggles.mode";
 
     // --- deviation 1: twice the speed, in fast mode only ------------------------------------------
 

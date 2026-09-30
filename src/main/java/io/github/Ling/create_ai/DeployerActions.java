@@ -149,8 +149,12 @@ public final class DeployerActions {
         if (!applied[0])
             return false;
 
-        consumeHeld(player, hand, keepHeld);
+        // The lock goes on before the held item is spent, not after: the lock covers what the player is
+        // carrying, and the item that was just used is about to stop being carried — so it would be the one
+        // item left without a cooldown, both in the hotbar's indicator and for anything that asks whether it
+        // may be used again. Locking first means the item the action spent is on cooldown with the rest.
         ToolCooldowns.lock(player, LOCK_TICKS);
+        consumeHeld(player, hand, keepHeld);
         table.notifyUpdate();
         // Create's own feedback for a deployer that did something.
         level.playSound(null, table.getBlockPos(), SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, .25f, .75f);
@@ -332,7 +336,12 @@ public final class DeployerActions {
             held.hurtAndBreak(1, player, LivingEntity.getSlotForHand(hand));
             return;
         }
-        ItemStack remainder = held.getCraftingRemainingItem();
+        // The crafting remainder belongs to the item in 1.21.1, not to the stack: ItemStack has no
+        // getCraftingRemainingItem here, so the stack's own item answers, and it has to be asked
+        // first — the item says "none" with a null rather than with an empty stack.
+        ItemStack remainder = held.getItem()
+            .hasCraftingRemainingItem() ? new ItemStack(held.getItem()
+                .getCraftingRemainingItem()) : ItemStack.EMPTY;
         held.shrink(1);
         if (held.isEmpty())
             player.setItemInHand(hand, remainder);

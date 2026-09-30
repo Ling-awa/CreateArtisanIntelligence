@@ -1,0 +1,6 @@
+{
+  "parent": "item/handheld",
+  "textures": {
+    "layer0": "create_ai:block/static_brass_saw"
+  }
+}

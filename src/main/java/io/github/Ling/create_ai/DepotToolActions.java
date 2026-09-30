@@ -204,11 +204,22 @@ public final class DepotToolActions {
             return false;
 
         handler.handleProcessingOnAllItems(transported -> pressResult(depot, transported));
-        // Create's press, at the volume and pitch a press on a belt would use (kinetic speed 256).
-        AllSoundEvents.MECHANICAL_PRESS_ACTIVATION.playOnServer(level, depot.getBlockPos(), .5f,
-            .75f + (TOOL_PRESS_SPEED / 1024f));
+        playPressSound(level, depot.getBlockPos());
         depot.notifyUpdate();
         return true;
+    }
+
+    /**
+     * Create's mechanical press activation, at the volume and pitch a press on a belt would use (kinetic
+     * speed 256, which is the speed these hand tools stand in for).
+     *
+     * <p>Shared with {@link HammerToolActions}, whose grind raises the same sound in the same place in its
+     * sequence: a mill or a crusher standing in for a press should be heard as one, and a strike that found
+     * nothing to do must stay silent — which is why every caller raises it only after its own change landed.
+     */
+    static void playPressSound(Level level, BlockPos pos) {
+        AllSoundEvents.MECHANICAL_PRESS_ACTIVATION.playOnServer(level, pos, .5f,
+            .75f + (TOOL_PRESS_SPEED / 1024f));
     }
 
     /**

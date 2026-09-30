@@ -2,6 +2,7 @@ package io.github.Ling.create_ai;
 
 import java.util.List;
 
+import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.content.fluids.FluidFX;
 import com.simibubi.create.content.processing.basin.BasinBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
@@ -11,11 +12,15 @@ import net.createmod.catnip.math.VecHelper;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.FluidStack;
 
@@ -104,6 +109,78 @@ public final class ToolVisuals {
                     motion.y + .25f, motion.z);
             }
         }
+    }
+
+    /**
+     * The particles Create's mechanical saw throws while it cuts: one per tick, thrown the way the
+     * blade's own stroke throws them. Mirrors {@code SawBlockEntity#spawnParticles}.
+
+     * <p>Two things are the saw's, and deliberately so. Which particle it is depends on the item: a block
+     * item throws that block's own fragments, which is what makes cutting a log look like cutting wood,
+     * and anything else throws the item's sprite. And how fast it flies depends on the same choice — a
+     * block's fragments carry at full speed, an item's sprite at an eighth of it.
+     *
+     * <p>What is not the saw's is the direction. A saw cuts along its shaft's axis and leaves the
+     * direction from {@code SawBlockEntity#getItemMovementVec}; a tool has no axis, so the fragments go
+     * down the player's look vector, from the item being cut and away from the eye that is aiming at it.
+     * The direction is the sign a saw gets from {@code getItemMovementVec} and nothing else is touched:
+     * {@code SawBlockEntity#spawnParticles} spawns at {@code pos - vec * offset} and launches with
+     * {@code -vec}, both functions of the same vector, so the two signs flip together and the fragments
+     * still come out of the near face and travel the way the blade runs — here, away from the player.
+     * Everything else about the emission is the saw's own arithmetic: the offset read off how far through
+     * the stroke it is, the speed, and the little scatter of upward velocity.
+     *
+     * @param direction the direction the player is looking, which is the way the fragments travel
+     * @param progress how far through the stroke, 0 to 1, which is the saw's
+     *                 {@code remainingTime / recipeDuration} and moves the emission point along the cut
+     */
+    public static void sawParticles(Level level, BlockPos pos, Vec3 direction, ItemStack cut, double progress) {
+        if (level == null || !level.isClientSide || cut.isEmpty())
+            return;
+
+        ParticleOptions particle;
+        float speed = 1;
+        if (cut.getItem() instanceof BlockItem blockItem) {
+            particle = new BlockParticleOption(ParticleTypes.BLOCK, blockItem.getBlock()
+                .defaultBlockState());
+        } else {
+            particle = new ItemParticleOption(ParticleTypes.ITEM, cut);
+            speed = .125f;
+        }
+
+        // The saw's own emission point: the center of the block and .45 above it, which is where the blade
+        // meets the item it is cutting. The offset is the saw's too — half the progress, taken back along
+        // the direction of travel, which is the near face of the item.
+        double offset = progress / 2;
+        Vec3 at = VecHelper.getCenterOf(pos)
+            .subtract(direction.scale(offset))
+            .add(0, .45f, 0);
+        level.addParticle(particle, at.x, at.y, at.z, direction.x * speed, level.random.nextFloat() * speed,
+            direction.z * speed);
+    }
+
+    /**
+     * The sound a finished stroke makes: Create's own saw activation, wood or stone, chosen exactly the way
+     * {@code SawBlockEntity#tickAudio} chooses it (its lines 152 to 163) — a block item whose own sound type
+     * is wood gets the wood one, everything else the stone one — at the volume and pitch Create uses.
+     *
+     * <p>Played through {@code SoundEntry#playOnServer}, which broadcasts it to everyone nearby. That is the
+     * point: the stroke is decided on the server, and the version before this one asked the entry for a
+     * <em>client-side</em> play ({@code playAt}) from here, where it is a no-op — which is why a finished
+     * stroke used to be silent no matter which of the two sounds was asked for.
+     */
+    public static void sawCutSound(Level level, BlockPos pos, ItemStack cut) {
+        boolean isWood = false;
+        if (cut.getItem() instanceof BlockItem blockItem) {
+            BlockState state = blockItem.getBlock()
+                .defaultBlockState();
+            isWood = blockItem.getBlock()
+                .getSoundType(state, level, pos, null) == SoundType.WOOD;
+        }
+        if (isWood)
+            AllSoundEvents.SAW_ACTIVATE_WOOD.playOnServer(level, pos, 3, 1);
+        else
+            AllSoundEvents.SAW_ACTIVATE_STONE.playOnServer(level, pos, 3, 1);
     }
 
     /**
