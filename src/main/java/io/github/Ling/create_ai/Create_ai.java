@@ -1,5 +1,33 @@
 package io.github.Ling.create_ai;
 
+import io.github.Ling.create_ai.block.BrassMechanicalSawBlock;
+import io.github.Ling.create_ai.block.BrassMechanicalSawBlockEntity;
+import io.github.Ling.create_ai.block.BrassMechanicalSawMovementBehaviour;
+import io.github.Ling.create_ai.block.BrassMechanicalSawMovementChecks;
+import io.github.Ling.create_ai.block.BrassMechanicalSawPlacementHelper;
+import io.github.Ling.create_ai.block.BrassMechanicalSawStress;
+import io.github.Ling.create_ai.block.ProcessingTableBlock;
+import io.github.Ling.create_ai.block.ProcessingTableBlockEntity;
+import io.github.Ling.create_ai.client.BrassMechanicalSawBladeModels;
+import io.github.Ling.create_ai.client.BrassMechanicalSawRenderer;
+import io.github.Ling.create_ai.client.FanCogSpinItemRenderer;
+import io.github.Ling.create_ai.client.ProcessingTableRenderer;
+import io.github.Ling.create_ai.client.SawCogSpinItemRenderer;
+import io.github.Ling.create_ai.client.SpoutGunItemRenderer;
+import io.github.Ling.create_ai.client.StirringRodItemRenderer;
+import io.github.Ling.create_ai.config.Config;
+import io.github.Ling.create_ai.fan.FanAirParticle;
+import io.github.Ling.create_ai.item.ArtisanGogglesItem;
+import io.github.Ling.create_ai.item.HammerItem;
+import io.github.Ling.create_ai.item.HandheldFanItem;
+import io.github.Ling.create_ai.item.HandheldMechanicalSawItem;
+import io.github.Ling.create_ai.item.ObsidianHammerItem;
+import io.github.Ling.create_ai.item.SawFilterSlotItem;
+import io.github.Ling.create_ai.item.SpoutGunItem;
+import io.github.Ling.create_ai.item.StirringRodItem;
+import io.github.Ling.create_ai.tool.ArtisanGogglesOnDepots;
+import io.github.Ling.create_ai.tool.ToolDurability;
+
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Codec;
 import com.simibubi.create.content.kinetics.saw.SawVisual;
@@ -17,6 +45,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
@@ -35,6 +64,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
@@ -71,6 +101,19 @@ public class Create_ai {
         DATA_COMPONENTS.registerComponentType("spout_gun_fluid",
             builder -> builder.persistent(SimpleFluidContent.CODEC)
                 .networkSynchronized(SimpleFluidContent.STREAM_CODEC));
+
+    /**
+     * How much fluid the spout gun moves in one right-click, as the player set it on the gun.
+     *
+     * <p>One of the ten amounts a sneaking press walks through, and absent on a gun that has never been set,
+     * which reads as the default — see {@code SpoutGunItem#transferAmount}. It is the amount moved between the
+     * gun and a container or a block's tank, and nothing else: the spout recipe a pour runs is Create's,
+     * decided by the fluid and the item, and is not scaled by this.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> SPOUT_GUN_TRANSFER =
+        DATA_COMPONENTS.registerComponentType("spout_gun_transfer",
+            builder -> builder.persistent(Codec.INT)
+                .networkSynchronized(ByteBufCodecs.VAR_INT));
 
     /**
      * What is installed in a handheld fan, as the id of the installed item.
@@ -145,9 +188,9 @@ public class Create_ai {
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> FAN_AIR =
         PARTICLE_TYPES.register("fan_air", () -> new SimpleParticleType(false));
 
-    // create_ai:processing_table - Create's depot, one stack deep, with tool-friendly hand rules.
-    // The block properties mirror create:depot: Create builds its depot from Blocks.ANDESITE's
-    // properties (Registrate initialProperties) and only overrides the map color to gray.
+    // create_ai:processing_table - the artisan's workbench: a crafting layout laid out and assembled by
+    // hand, with no depot under it any more. See ProcessingTableBlock. The block properties mirror
+    // create:depot, so it still looks and stands like the table it always was.
     public static final DeferredBlock<ProcessingTableBlock> PROCESSING_TABLE = BLOCKS.register("processing_table",
         () -> new ProcessingTableBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.ANDESITE).mapColor(MapColor.COLOR_GRAY)));
     public static final DeferredItem<BlockItem> PROCESSING_TABLE_ITEM = ITEMS.registerSimpleBlockItem("processing_table", PROCESSING_TABLE);
@@ -177,38 +220,54 @@ public class Create_ai {
     // create_ai:hammer - hold use for 0.75 seconds to press what a depot or basin holds.
     // NOTE: registered as our HammerItem subclass, not with registerSimpleItem - a plain Item would
     // silently drop every override (useOn, getUseDuration, finishUsingItem) and do nothing.
-    public static final DeferredItem<Item> HAMMER = ITEMS.register("hammer", () -> new HammerItem(new Item.Properties().stacksTo(1)));
+    // The durability here is the item's default: the config's value is applied to each stack by the item
+    // itself, because this mod's config is loaded after the registry events fire (see ToolDurability).
+    public static final DeferredItem<Item> HAMMER = ITEMS.register("hammer",
+        () -> new HammerItem(new Item.Properties().stacksTo(1)
+            .durability(512)
+            .attributes(HammerItem.createAttributes())));
 
     // create_ai:obsidian_hammer - the hammer's press, and crushing wheels instead of a millstone on a
     // sneaking strike. Its own item rather than a mode, because a mode would have to be kept on the
     // stack or cycled by a key, and the two hammers are meant to be held at the same time.
     public static final DeferredItem<Item> OBSIDIAN_HAMMER = ITEMS.register("obsidian_hammer",
-        () -> new ObsidianHammerItem(new Item.Properties().stacksTo(1)));
+        () -> new ObsidianHammerItem(new Item.Properties().stacksTo(1)
+            .durability(2048)
+            .attributes(HammerItem.createAttributes())));
 
     // create_ai:spout_gun - a hand-held 4000 mB fluid tank, drawn with a spinning cog and the fluid it
-    // carries. See SpoutGunItemRenderer for the rendering.
-    public static final DeferredItem<Item> SPOUT_GUN = ITEMS.register("spout_gun", () -> new SpoutGunItem(new Item.Properties().stacksTo(1)));
+    // carries. See SpoutGunItemRenderer for the rendering. One of the three tools that run on a backtank.
+    public static final DeferredItem<Item> SPOUT_GUN = ITEMS.register("spout_gun",
+        () -> new SpoutGunItem(new Item.Properties().stacksTo(1)
+            .durability(512)));
 
     // create_ai:stirring_rod - hold use over a basin to stir it, for as long as the key is held.
-    public static final DeferredItem<Item> STIRRING_ROD = ITEMS.register("stirring_rod", () -> new StirringRodItem(new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> STIRRING_ROD = ITEMS.register("stirring_rod",
+        () -> new StirringRodItem(new Item.Properties().stacksTo(1)
+            .durability(512)));
 
     // create_ai:handheld_encased_fan - hold use to blow Create's own fan air, three blocks along the eyes.
     // The Java identifier stays HANDHELD_FAN: the registry id is what a player reads in a command, and
     // renaming it is what makes the item an "encased" fan there; the class and constant names follow the
     // tool's own name and would only churn call sites.
-    public static final DeferredItem<Item> HANDHELD_FAN = ITEMS.register("handheld_encased_fan", () -> new HandheldFanItem(new Item.Properties().stacksTo(1)));
+    public static final DeferredItem<Item> HANDHELD_FAN = ITEMS.register("handheld_encased_fan",
+        () -> new HandheldFanItem(new Item.Properties().stacksTo(1)
+            .durability(512)));
 
     // create_ai:handheld_mechanical_saw - hold use on a depot for one second to cut what it holds, with a
-    // filter slot that selects among the recipes the input matches. See HandheldMechanicalSawItem.
+    // filter slot that selects among the recipes the input matches, and a sweeping cut in front of the
+    // player when there is no depot to work on. See HandheldMechanicalSawItem.
     public static final DeferredItem<Item> HANDHELD_MECHANICAL_SAW = ITEMS.register("handheld_mechanical_saw",
-        () -> new HandheldMechanicalSawItem(new Item.Properties().stacksTo(1)));
+        () -> new HandheldMechanicalSawItem(new Item.Properties().stacksTo(1)
+            .durability(512)));
 
-    // create_ai:loupe - Create's goggles, worn in the helmet slot, that also stand in for a deployer
-    // on a depot while sneaking. See LoupeItem for how the goggles half is registered and
-    // LoupeDeployerOnDepots for the deployer half. Not a custom tool: it is worn, never used on a
-    // table, so it has no business in isCustomTool.
-    public static final DeferredItem<Item> LOUPE = ITEMS.register("loupe",
-        () -> new LoupeItem(new Item.Properties().stacksTo(1)));
+    // create_ai:goggles - Create's goggles, worn in the helmet slot, that also stand in for a deployer
+    // on a depot while sneaking. See ArtisanGogglesItem for how the goggles half is registered and
+    // ArtisanGogglesOnDepots for the deployer half. Not a custom tool: it is worn, never used on a
+    // table, so it has no business in isCustomTool - and, being worn rather than swung, it is the one
+    // item here that takes no wear at all.
+    public static final DeferredItem<Item> GOGGLES = ITEMS.register("goggles",
+        () -> new ArtisanGogglesItem(new Item.Properties().stacksTo(1)));
 
     // Create's own "base" tab, so our blocks show up next to Create's
     private static final ResourceKey<CreativeModeTab> CREATE_BASE_TAB =
@@ -239,7 +298,7 @@ public class Create_ai {
             output.accept(STIRRING_ROD.get());
             output.accept(HANDHELD_FAN.get());
             output.accept(HANDHELD_MECHANICAL_SAW.get());
-            output.accept(LOUPE.get());
+            output.accept(GOGGLES.get());
         }).build());
     }
 
@@ -262,15 +321,10 @@ public class Create_ai {
         // Register the Deferred Register to the mod event bus so our particle type gets registered
         PARTICLE_TYPES.register(modEventBus);
 
-        // Expose the depot's item handler capability on our own block entity type
-        modEventBus.addListener(ProcessingTableBlockEntity::registerCapabilities);
         // Expose the saw's item handler capability on our own block entity type
         modEventBus.addListener(BrassMechanicalSawBlockEntity::registerCapabilities);
         // Expose the spout gun's fluid tank through the stock item fluid handler capability
         modEventBus.addListener(SpoutGunItem::registerCapabilities);
-
-        // Register the item to a creative tab
-        modEventBus.addListener(this::addCreative);
 
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
@@ -291,12 +345,12 @@ public class Create_ai {
         // Create registers its saw's placement helper against its own block, so a subclass inherits none.
         event.enqueueWork(BrassMechanicalSawPlacementHelper::register);
 
-        // Wearing the loupe is wearing goggles. Create's overlay, its goggles entry in a machine's
+        // Wearing the goggles is wearing goggles. Create's overlay, its goggles entry in a machine's
         // tooltip and its rotation indicator all ask one question - GogglesItem.isWearingGoggles - and
         // Create answers it from a list of predicates that holds its own goggles alone. That list is
         // the extension point Create documents for another item that counts as goggles, and this is
         // the only thing an item has to do to get the whole overlay.
-        event.enqueueWork(LoupeItem::registerGogglesOverlay);
+        event.enqueueWork(ArtisanGogglesItem::registerGogglesOverlay);
 
         // One line, and only one: the scaffold's chatter (a dirt block, a magic number, a list of
         // items) was console noise with nothing behind it. What is worth printing is what actually got
@@ -307,26 +361,36 @@ public class Create_ai {
             BuiltInRegistries.ITEM.getKey(PROCESSING_TABLE_ITEM.get()));
     }
 
-    // Our content into Create's own base tab, next to Create's blocks
-    private void addCreative(BuildCreativeModeTabContentsEvent event) {
-        if (event.getTabKey() == CREATE_BASE_TAB) {
-            event.accept(PROCESSING_TABLE_ITEM);
-            event.accept(BRASS_MECHANICAL_SAW_ITEM);
-            event.accept(HAMMER);
-            event.accept(OBSIDIAN_HAMMER);
-            event.accept(SPOUT_GUN);
-            event.accept(STIRRING_ROD);
-            event.accept(HANDHELD_FAN);
-            event.accept(HANDHELD_MECHANICAL_SAW);
-            event.accept(LOUPE);
-        }
-    }
+    // Our content stays in our own tab. It used to be added to Create's base tab as well, so it appeared
+    // twice; a pack that wants it there can move it with a datapack, and a player who wants one list of
+    // this mod's things wants one list of them.
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent.
     // The bus is not specified on purpose: it is deprecated for removal (since 1.21.1) and ignored —FML routes each
     // listener by its event type (IModBusEvent -> mod bus, everything else -> NeoForge.EVENT_BUS).
     @EventBusSubscriber(modid = MODID, value = Dist.CLIENT)
     public static class ClientModEvents {
+
+        /**
+         * Asks for the item models nothing else names.
+         *
+         * <p>A model is only baked if a blockstate, an item or this event refers to it. The saw's blades are
+         * named by their blockstate and bake on their own, but an item renderer's cog is named by nothing
+         * but the renderer — and Flywheel's {@code PartialModel} does not fail loudly when the model it wants
+         * was never baked: it hands back the missing model, which is the purple cube. That is why the spout
+         * gun's cog, the fan's cog and the saw's cog all have to be asked for here, by name, before baking
+         * starts.
+         */
+        @SubscribeEvent
+        public static void onRegisterAdditional(ModelEvent.RegisterAdditional event) {
+            event.register(ModelResourceLocation.standalone(
+                ResourceLocation.fromNamespaceAndPath(MODID, "item/spout_gun/cog")));
+            event.register(ModelResourceLocation.standalone(
+                ResourceLocation.fromNamespaceAndPath(MODID, "item/handheld_encased_fan/cog")));
+            event.register(ModelResourceLocation.standalone(
+                ResourceLocation.fromNamespaceAndPath(MODID, "item/handheld_mechanical_saw/cog")));
+        }
+
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event) {
             // Register the blade models with Flywheel FIRST, and here rather than in the renderer's
@@ -336,6 +400,13 @@ public class Create_ai {
             // the model events; EntityRenderersEvent.RegisterRenderers, where the renderer class would
             // otherwise initialise, runs after.
             BrassMechanicalSawBladeModels.register();
+
+            // The same timing for the three cogs: their PartialModels have to exist before
+            // onRegisterAdditional above runs, and the renderer classes would otherwise not initialise until
+            // the renderer events, which come after the model events.
+            SpoutGunItemRenderer.register();
+            FanCogSpinItemRenderer.register();
+            SawCogSpinItemRenderer.register();
 
             // Create's item tooltips, from this mod's items. Client-side, which is where a tooltip is
             // ever built —Create's own tooltip modifiers are read by its client events, and the
@@ -357,12 +428,12 @@ public class Create_ai {
                 .apply();
         }
 
-        // Create's own depot renderer: it draws the held stack AND the eight output slots, out of the
-        // depot behavior our block entity inherits from Create. A hand-written renderer here was why
-        // products sitting in those slots used to be invisible.
         @SubscribeEvent
         public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
-            event.registerBlockEntityRenderer(PROCESSING_TABLE_BE.get(), DepotRenderer::new);
+            // The workbench's own renderer: the crafting layout, laid flat on the table's face. It used to be
+            // Create's depot renderer, which drew the depot's held stack and its eight output slots out of
+            // the depot behaviour the table inherited — none of which the table is any more.
+            event.registerBlockEntityRenderer(PROCESSING_TABLE_BE.get(), ProcessingTableRenderer::new);
             // Our saw renderer: Create's, with this mod's blade models in place of Create's steel one.
             // The blade is not part of the block model - Create draws it as a separate partial model -
             // so the stock SawRenderer would ignore our blade files entirely.
@@ -375,7 +446,8 @@ public class Create_ai {
         }
 
         /**
-         * The spout gun's renderer, attached as a client extension.
+         * The spout gun's, the handheld fan's, the handheld saw's and the stirring rod's renderers,
+         * attached as client extensions.
          *
          * <p>This has to happen here rather than in an {@code initializeClient} override on the item.
          * Overriding that method puts a reference to a client-only renderer inside a class the server
@@ -383,14 +455,26 @@ public class Create_ai {
          * {@code BlockEntityWithoutLevelRenderer}, which a dedicated server does not have. Registration
          * through this event keeps the item itself free of client code.
          *
-         * <p>Two things happen in the one line: the renderer becomes the gun's client extension, and the
-         * gun is entered into Create's list of custom-rendered items, whose models Create wraps while
+         * <p>Two things happen in the one line: the renderer becomes the item's client extension, and the
+         * item is entered into Create's list of custom-rendered items, whose models Create wraps while
          * baking —which is what lets the renderer draw the model itself, and then the cog on top of it.
+         *
+         * <p>The fan, the saw and the rod are the same pattern as the gun, and need it for the same reason:
+         * the fan's and the saw's cogs are second models drawn over the body, and the rod has to be able to
+         * decide not to draw itself at all while its holder is stirring with it. None of the four item
+         * classes knows any of this — the renderers are named only here, on the client.
          */
         @SubscribeEvent
         public static void registerClientExtensions(RegisterClientExtensionsEvent event) {
             event.registerItem(SimpleCustomRenderer.create(SPOUT_GUN.get(), new SpoutGunItemRenderer()),
                 SPOUT_GUN.get());
+            event.registerItem(SimpleCustomRenderer.create(HANDHELD_FAN.get(), new FanCogSpinItemRenderer()),
+                HANDHELD_FAN.get());
+            event.registerItem(
+                SimpleCustomRenderer.create(HANDHELD_MECHANICAL_SAW.get(), new SawCogSpinItemRenderer()),
+                HANDHELD_MECHANICAL_SAW.get());
+            event.registerItem(SimpleCustomRenderer.create(STIRRING_ROD.get(), new StirringRodItemRenderer()),
+                STIRRING_ROD.get());
         }
     }
 }

@@ -1,6 +1,3 @@
 {
-  "parent": "item/handheld",
-  "textures": {
-    "layer0": "create_ai:block/static_brass_saw"
-  }
+  "parent": "create_ai:item/handheld_mechanical_saw/item"
 }

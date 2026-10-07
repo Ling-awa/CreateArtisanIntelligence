@@ -1,0 +1,26 @@
+{
+  "type": "create:mechanical_crafting",
+  "accept_mirrored": true,
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "minecraft:obsidian"
+    },
+    "B": {
+      "item": "minecraft:iron_block"
+    },
+    "C": {
+      "item": "minecraft:stick"
+    }
+  },
+  "pattern": [
+    " AB",
+    " CA",
+    "C  "
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_ai:obsidian_hammer"
+  },
+  "show_notification": false
+}

@@ -36,7 +36,7 @@ public final class ItemTooltips {
         describe(Create_ai.STIRRING_ROD.get());
         describe(Create_ai.HANDHELD_FAN.get());
         describe(Create_ai.HANDHELD_MECHANICAL_SAW.get());
-        describe(Create_ai.LOUPE.get());
+        describe(Create_ai.GOGGLES.get());
     }
 
     private static void describe(Item item) {

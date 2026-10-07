@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": {
+      "item": "create:spout"
+    },
+    "B": {
+      "item": "create:mechanical_pump"
+    },
+    "C": {
+      "item": "create:copper_casing"
+    },
+    "D": {
+      "item": "minecraft:copper_ingot"
+    }
+  },
+  "pattern": [
+    "ABC",
+    "  D"
+  ],
+  "result": {
+    "count": 1,
+    "id": "create_ai:spout_gun"
+  }
+}
