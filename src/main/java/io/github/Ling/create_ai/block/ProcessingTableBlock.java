@@ -1,6 +1,5 @@
 package io.github.Ling.create_ai.block;
 
-import io.github.Ling.create_ai.Create_ai;
 import io.github.Ling.create_ai.fan.FanCurrent;
 import io.github.Ling.create_ai.table.TableAssembly;
 import io.github.Ling.create_ai.table.TableMoveMode;

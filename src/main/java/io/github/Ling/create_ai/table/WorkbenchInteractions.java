@@ -2,7 +2,7 @@ package io.github.Ling.create_ai.table;
 
 import io.github.Ling.create_ai.block.ProcessingTableBlock;
 import io.github.Ling.create_ai.block.ProcessingTableBlockEntity;
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -32,7 +32,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
  * main hand moves — the client retries an unconsumed click with the other hand, and a move on each of those
  * attempts is one click moving the layout twice.
  */
-@EventBusSubscriber(modid = Create_ai.MODID)
+@EventBusSubscriber(modid = CreateAI.MOD_ID)
 public final class WorkbenchInteractions {
 
     private WorkbenchInteractions() {

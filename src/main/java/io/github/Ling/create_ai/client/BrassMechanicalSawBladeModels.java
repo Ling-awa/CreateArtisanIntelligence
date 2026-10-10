@@ -1,6 +1,6 @@
 package io.github.Ling.create_ai.client;
 
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 
 import dev.engine_room.flywheel.lib.model.baked.PartialModel;
 import net.minecraft.resources.ResourceLocation;
@@ -49,7 +49,7 @@ public final class BrassMechanicalSawBladeModels {
     }
 
     private static PartialModel block(String name) {
-        return PartialModel.of(ResourceLocation.fromNamespaceAndPath(Create_ai.MODID,
+        return PartialModel.of(ResourceLocation.fromNamespaceAndPath(CreateAI.MOD_ID,
             "block/brass_mechanical_saw/" + name));
     }
 }

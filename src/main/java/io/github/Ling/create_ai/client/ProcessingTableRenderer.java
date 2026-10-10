@@ -1,7 +1,6 @@
 package io.github.Ling.create_ai.client;
 
 import io.github.Ling.create_ai.block.ProcessingTableBlockEntity;
-import io.github.Ling.create_ai.Create_ai;
 
 import java.util.ArrayList;
 import java.util.Comparator;

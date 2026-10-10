@@ -1,9 +1,7 @@
 package io.github.Ling.create_ai.tool;
 
 import io.github.Ling.create_ai.compat.ToolProcess;
-import io.github.Ling.create_ai.config.Config;
 import io.github.Ling.create_ai.config.RecipeFilter;
-import io.github.Ling.create_ai.Create_ai;
 import io.github.Ling.create_ai.item.SawFilterSlotItem;
 
 import java.util.ArrayList;

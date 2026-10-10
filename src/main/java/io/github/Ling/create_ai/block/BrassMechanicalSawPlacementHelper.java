@@ -1,7 +1,5 @@
 package io.github.Ling.create_ai.block;
 
-import io.github.Ling.create_ai.Create_ai;
-
 import java.util.List;
 import java.util.function.Predicate;
 

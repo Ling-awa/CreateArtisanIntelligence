@@ -22,16 +22,12 @@ import io.github.Ling.create_ai.item.HammerItem;
 import io.github.Ling.create_ai.item.HandheldFanItem;
 import io.github.Ling.create_ai.item.HandheldMechanicalSawItem;
 import io.github.Ling.create_ai.item.ObsidianHammerItem;
-import io.github.Ling.create_ai.item.SawFilterSlotItem;
 import io.github.Ling.create_ai.item.SpoutGunItem;
 import io.github.Ling.create_ai.item.StirringRodItem;
-import io.github.Ling.create_ai.tool.ArtisanGogglesOnDepots;
-import io.github.Ling.create_ai.tool.ToolDurability;
 
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Codec;
 import com.simibubi.create.content.kinetics.saw.SawVisual;
-import com.simibubi.create.content.logistics.depot.DepotRenderer;
 import com.simibubi.create.foundation.item.render.SimpleCustomRenderer;
 
 import dev.engine_room.flywheel.lib.visualization.SimpleBlockEntityVisualizer;
@@ -69,7 +65,6 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
-import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -78,22 +73,22 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.slf4j.Logger;
 
 // The value here should match an entry in the META-INF/neoforge.mods.toml file
-@Mod(Create_ai.MODID)
-public class Create_ai {
+@Mod(CreateAI.MOD_ID)
+public class CreateAI {
     // Define mod id in a common place for everything to reference
-    public static final String MODID = "create_ai";
+    public static final String MOD_ID = "create_ai";
     // Directly reference a slf4j logger
     private static final Logger LOGGER = LogUtils.getLogger();
     // Create a Deferred Register to hold Blocks which will all be registered under the "create_ai" namespace
-    public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MODID);
+    public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MOD_ID);
     // Create a Deferred Register to hold Items which will all be registered under the "create_ai" namespace
-    public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
+    public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MOD_ID);
     // Create a Deferred Register to hold CreativeModeTabs which will all be registered under the "create_ai" namespace
-    public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
+    public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MOD_ID);
     // Create a Deferred Register to hold BlockEntityTypes which will all be registered under the "create_ai" namespace
-    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, MODID);
+    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, MOD_ID);
     // Create a Deferred Register to hold DataComponentTypes which will all be registered under the "create_ai" namespace
-    public static final DeferredRegister.DataComponents DATA_COMPONENTS = DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE, MODID);
+    public static final DeferredRegister.DataComponents DATA_COMPONENTS = DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE, MOD_ID);
 
     // The spout gun's tank contents. One component holding a fluid stack, which is what NeoForge's
     // FluidHandlerItemStack reads and writes; an empty tank removes the component entirely.
@@ -183,7 +178,7 @@ public class Create_ai {
      * it is the same eight vanilla sprites Create's own air-flow definition names.
      */
     public static final DeferredRegister<ParticleType<?>> PARTICLE_TYPES =
-        DeferredRegister.create(Registries.PARTICLE_TYPE, MODID);
+        DeferredRegister.create(Registries.PARTICLE_TYPE, MOD_ID);
 
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> FAN_AIR =
         PARTICLE_TYPES.register("fan_air", () -> new SimpleParticleType(false));
@@ -304,7 +299,7 @@ public class Create_ai {
 
     // The constructor for the mod class is the first code that is run when your mod is loaded.
     // FML will recognize some parameter types like IEventBus or ModContainer and pass them in automatically.
-    public Create_ai(IEventBus modEventBus, ModContainer modContainer) {
+    public CreateAI(IEventBus modEventBus, ModContainer modContainer) {
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
 
@@ -368,7 +363,7 @@ public class Create_ai {
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent.
     // The bus is not specified on purpose: it is deprecated for removal (since 1.21.1) and ignored —FML routes each
     // listener by its event type (IModBusEvent -> mod bus, everything else -> NeoForge.EVENT_BUS).
-    @EventBusSubscriber(modid = MODID, value = Dist.CLIENT)
+    @EventBusSubscriber(modid = MOD_ID, value = Dist.CLIENT)
     public static class ClientModEvents {
 
         /**
@@ -384,11 +379,11 @@ public class Create_ai {
         @SubscribeEvent
         public static void onRegisterAdditional(ModelEvent.RegisterAdditional event) {
             event.register(ModelResourceLocation.standalone(
-                ResourceLocation.fromNamespaceAndPath(MODID, "item/spout_gun/cog")));
+                ResourceLocation.fromNamespaceAndPath(MOD_ID, "item/spout_gun/cog")));
             event.register(ModelResourceLocation.standalone(
-                ResourceLocation.fromNamespaceAndPath(MODID, "item/handheld_encased_fan/cog")));
+                ResourceLocation.fromNamespaceAndPath(MOD_ID, "item/handheld_encased_fan/cog")));
             event.register(ModelResourceLocation.standalone(
-                ResourceLocation.fromNamespaceAndPath(MODID, "item/handheld_mechanical_saw/cog")));
+                ResourceLocation.fromNamespaceAndPath(MOD_ID, "item/handheld_mechanical_saw/cog")));
         }
 
         @SubscribeEvent
@@ -422,7 +417,7 @@ public class Create_ai {
             // neverSkipVanillaRender, not the default: Create's own saw keeps SawRenderer running
             // alongside the visual (SawRenderer still draws the blade, the items on it and the recipe
             // filter, and SawVisual only owns the shaft). Skipping vanilla render here would drop those.
-            SimpleBlockEntityVisualizer.builder(Create_ai.BRASS_MECHANICAL_SAW_BE.get())
+            SimpleBlockEntityVisualizer.builder(CreateAI.BRASS_MECHANICAL_SAW_BE.get())
                 .factory(SawVisual::new)
                 .neverSkipVanillaRender()
                 .apply();

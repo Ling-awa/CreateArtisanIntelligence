@@ -28,15 +28,15 @@ public final class ItemTooltips {
 
     /** Gives every item of this mod its entry. Called once, after the items are registered. */
     public static void register() {
-        describe(Create_ai.PROCESSING_TABLE_ITEM.get());
-        describe(Create_ai.BRASS_MECHANICAL_SAW_ITEM.get());
-        describe(Create_ai.HAMMER.get());
-        describe(Create_ai.OBSIDIAN_HAMMER.get());
-        describe(Create_ai.SPOUT_GUN.get());
-        describe(Create_ai.STIRRING_ROD.get());
-        describe(Create_ai.HANDHELD_FAN.get());
-        describe(Create_ai.HANDHELD_MECHANICAL_SAW.get());
-        describe(Create_ai.GOGGLES.get());
+        describe(CreateAI.PROCESSING_TABLE_ITEM.get());
+        describe(CreateAI.BRASS_MECHANICAL_SAW_ITEM.get());
+        describe(CreateAI.HAMMER.get());
+        describe(CreateAI.OBSIDIAN_HAMMER.get());
+        describe(CreateAI.SPOUT_GUN.get());
+        describe(CreateAI.STIRRING_ROD.get());
+        describe(CreateAI.HANDHELD_FAN.get());
+        describe(CreateAI.HANDHELD_MECHANICAL_SAW.get());
+        describe(CreateAI.GOGGLES.get());
     }
 
     private static void describe(Item item) {

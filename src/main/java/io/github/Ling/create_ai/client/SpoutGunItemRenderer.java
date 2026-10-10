@@ -1,6 +1,5 @@
 package io.github.Ling.create_ai.client;
 
-import io.github.Ling.create_ai.Create_ai;
 import io.github.Ling.create_ai.item.SpoutGunItem;
 
 import com.mojang.blaze3d.vertex.PoseStack;

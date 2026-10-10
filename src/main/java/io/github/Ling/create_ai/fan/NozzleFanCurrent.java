@@ -1,7 +1,7 @@
 package io.github.Ling.create_ai.fan;
 
 import io.github.Ling.create_ai.config.Config;
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 import io.github.Ling.create_ai.item.HandheldFanItem;
 
 import java.util.HashMap;
@@ -280,7 +280,7 @@ public final class NozzleFanCurrent implements AirFlowSource {
 
     private boolean isHeld() {
         return owner.isUsingItem() && owner.getUseItem()
-            .is(Create_ai.HANDHELD_FAN.get());
+            .is(CreateAI.HANDHELD_FAN.get());
     }
 
     // --- AirFlowSource ----------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 package io.github.Ling.create_ai.client;
 
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 import io.github.Ling.create_ai.item.ArtisanGogglesItem;
 
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ import net.neoforged.neoforge.client.model.BakedModelWrapper;
  * <p>Nothing about the overlay changes: that is a predicate on the goggles item and is registered separately
  * (see {@link ArtisanGogglesItem}).
  */
-@EventBusSubscriber(modid = Create_ai.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = CreateAI.MOD_ID, value = Dist.CLIENT)
 public final class GogglesHeadModel {
 
     private GogglesHeadModel() {
@@ -46,7 +46,7 @@ public final class GogglesHeadModel {
 
     @SubscribeEvent
     public static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
-        ResourceLocation goggles = ResourceLocation.fromNamespaceAndPath(Create_ai.MODID, "goggles");
+        ResourceLocation goggles = ResourceLocation.fromNamespaceAndPath(CreateAI.MOD_ID, "goggles");
 
         // Collected first, then written: the event's map is the one being iterated, and a model can be baked
         // under more than one key (the inventory form, and any variant naming the same item model).

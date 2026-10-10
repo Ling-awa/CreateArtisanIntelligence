@@ -4,7 +4,7 @@ import io.github.Ling.create_ai.client.CreativeSlotSync;
 import io.github.Ling.create_ai.compat.ToolProcess;
 import io.github.Ling.create_ai.config.Config;
 import io.github.Ling.create_ai.config.RecipeFilter;
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 import io.github.Ling.create_ai.tool.DepotToolActions;
 import io.github.Ling.create_ai.tool.ToolDurability;
 import io.github.Ling.create_ai.tool.ToolReequip;
@@ -121,7 +121,7 @@ import net.neoforged.neoforge.fluids.capability.templates.FluidHandlerItemStack;
  */
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-@EventBusSubscriber(modid = Create_ai.MODID)
+@EventBusSubscriber(modid = CreateAI.MOD_ID)
 public class SpoutGunItem extends Item {
 
     /** The tank size the gun ships with: eight buckets, and the config's default. */
@@ -163,12 +163,12 @@ public class SpoutGunItem extends Item {
 
     /** How much fluid this gun moves in one right-click: what it was set to, or the default. */
     public static int transferAmount(ItemStack stack) {
-        return stack.getOrDefault(Create_ai.SPOUT_GUN_TRANSFER, DEFAULT_TRANSFER);
+        return stack.getOrDefault(CreateAI.SPOUT_GUN_TRANSFER, DEFAULT_TRANSFER);
     }
 
     /** Remember what the gun was set to. */
     public static void setTransferAmount(ItemStack stack, int amount) {
-        stack.set(Create_ai.SPOUT_GUN_TRANSFER, amount);
+        stack.set(CreateAI.SPOUT_GUN_TRANSFER, amount);
     }
 
     /**
@@ -196,8 +196,8 @@ public class SpoutGunItem extends Item {
             Capabilities.FluidHandler.ITEM,
             // The size is read when the handler is built for a stack rather than here, because this runs
             // during setup, before any config file has been read.
-            (stack, context) -> new FluidHandlerItemStack(Create_ai.SPOUT_GUN_FLUID, stack, capacity()),
-            Create_ai.SPOUT_GUN.get()
+            (stack, context) -> new FluidHandlerItemStack(CreateAI.SPOUT_GUN_FLUID, stack, capacity()),
+            CreateAI.SPOUT_GUN.get()
         );
     }
 
@@ -540,9 +540,9 @@ public class SpoutGunItem extends Item {
     public static boolean canMoveFluid(Level level, ItemStack source, ItemStack destination) {
         // Whether the whole transfer would happen, asked of the same code that would do it, so the
         // preview and the transfer can never disagree.
-        if (destination.is(Create_ai.SPOUT_GUN.get()))
+        if (destination.is(CreateAI.SPOUT_GUN.get()))
             return emptyIntoGun(level, source, destination, true) != null;
-        if (source.is(Create_ai.SPOUT_GUN.get()))
+        if (source.is(CreateAI.SPOUT_GUN.get()))
             return fillFromGun(level, source, destination, true) != null;
         return false;
     }
@@ -574,9 +574,9 @@ public class SpoutGunItem extends Item {
      */
     @Nullable
     public static Transfer moveFluid(Level level, ItemStack source, ItemStack destination) {
-        if (destination.is(Create_ai.SPOUT_GUN.get()))
+        if (destination.is(CreateAI.SPOUT_GUN.get()))
             return emptyIntoGun(level, source, destination, false);
-        if (source.is(Create_ai.SPOUT_GUN.get()))
+        if (source.is(CreateAI.SPOUT_GUN.get()))
             return fillFromGun(level, source, destination, false);
         return null;
     }
@@ -681,7 +681,7 @@ public class SpoutGunItem extends Item {
     public static void onStackedOnOther(ItemStackedOnOtherEvent event) {
         ItemStack carried = event.getCarriedItem();
         ItemStack stackedOn = event.getStackedOnItem();
-        if (!carried.is(Create_ai.SPOUT_GUN.get()) && !stackedOn.is(Create_ai.SPOUT_GUN.get()))
+        if (!carried.is(CreateAI.SPOUT_GUN.get()) && !stackedOn.is(CreateAI.SPOUT_GUN.get()))
             return;
         // Right-click, matching how a bundle is used. The carried stack acts on the one in the slot,
         // so fluid always moves carried -> stacked on.
@@ -751,7 +751,7 @@ public class SpoutGunItem extends Item {
         // nothing to charge either way. The main-hand slot is named because a transfer happens in an
         // inventory and not in a hand — the slot is only what the break callback would be told.
         if (!clientSide) {
-            ItemStack gun = stackedOn.is(Create_ai.SPOUT_GUN.get()) ? stackedOn : carried;
+            ItemStack gun = stackedOn.is(CreateAI.SPOUT_GUN.get()) ? stackedOn : carried;
             ToolWear.wearWithAir(player, gun, LivingEntity.getSlotForHand(InteractionHand.MAIN_HAND));
         }
         // Fluid moved: the vanilla swap must not also happen.
@@ -761,7 +761,7 @@ public class SpoutGunItem extends Item {
             // (see CreativeSlotSync). Whichever of the two sides sat in a slot is the one pushed here.
             CreativeSlotSync.pushSlot(player, event.getSlot());
 
-        if (stackedOn.is(Create_ai.SPOUT_GUN.get()))
+        if (stackedOn.is(CreateAI.SPOUT_GUN.get()))
             // Something else emptied into the gun: that fluid's pouring sound.
             playPourSound(player, transfer.moved());
         else if (clientSide)

@@ -1,7 +1,5 @@
 package io.github.Ling.create_ai.client;
 
-import io.github.Ling.create_ai.Create_ai;
-
 import net.minecraft.util.Mth;
 
 /**

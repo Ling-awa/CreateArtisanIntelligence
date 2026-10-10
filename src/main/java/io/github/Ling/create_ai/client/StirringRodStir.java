@@ -1,7 +1,7 @@
 package io.github.Ling.create_ai.client;
 
 import io.github.Ling.create_ai.config.Config;
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 import io.github.Ling.create_ai.item.StirringRodItem;
 import io.github.Ling.create_ai.tool.BasinToolActions;
 import io.github.Ling.create_ai.tool.MixingCycle;
@@ -156,7 +156,7 @@ public final class StirringRodStir {
         if (!player.isUsingItem())
             return null;
         if (!player.getUseItem()
-            .is(Create_ai.STIRRING_ROD.get()))
+            .is(CreateAI.STIRRING_ROD.get()))
             return null;
 
         BasinBlockEntity basin = BasinToolActions.targetOf(player);

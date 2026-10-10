@@ -4,7 +4,6 @@ import io.github.Ling.create_ai.client.StirringRodItemRenderer;
 import io.github.Ling.create_ai.client.StirringRodStir;
 import io.github.Ling.create_ai.client.StirringRodStirRenderer;
 import io.github.Ling.create_ai.config.Config;
-import io.github.Ling.create_ai.Create_ai;
 import io.github.Ling.create_ai.tool.BasinToolActions;
 import io.github.Ling.create_ai.tool.MixingCycle;
 import io.github.Ling.create_ai.tool.ToolDurability;
