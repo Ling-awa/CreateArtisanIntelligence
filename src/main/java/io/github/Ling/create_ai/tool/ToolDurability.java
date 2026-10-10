@@ -1,8 +1,5 @@
 package io.github.Ling.create_ai.tool;
 
-import io.github.Ling.create_ai.config.Config;
-import io.github.Ling.create_ai.Create_ai;
-
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
 

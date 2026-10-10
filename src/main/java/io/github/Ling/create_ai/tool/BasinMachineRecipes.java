@@ -1,7 +1,5 @@
 package io.github.Ling.create_ai.tool;
 
-import io.github.Ling.create_ai.Create_ai;
-
 import java.util.List;
 
 import org.jetbrains.annotations.Nullable;

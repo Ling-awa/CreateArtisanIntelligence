@@ -1,6 +1,6 @@
 package io.github.Ling.create_ai.tool;
 
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 import io.github.Ling.create_ai.item.ArtisanGogglesItem;
 import io.github.Ling.create_ai.table.WorkbenchInteractions;
 
@@ -50,7 +50,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
  * <p>Nothing here paces the click: {@link DeployerActions#deploy} leaves its own half second of item
  * cooldown behind, and the client stops sending clicks for an item that is cooling down.
  */
-@EventBusSubscriber(modid = Create_ai.MODID)
+@EventBusSubscriber(modid = CreateAI.MOD_ID)
 public final class ArtisanGogglesOnDepots {
 
     private ArtisanGogglesOnDepots() {
@@ -77,7 +77,7 @@ public final class ArtisanGogglesOnDepots {
         // The stack the click came from, which is the ingredient — never the goggles. An empty hand has
         // nothing to install, and a tool's right-click already means its own action.
         ItemStack held = event.getItemStack();
-        if (held.isEmpty() || Create_ai.isCustomTool(held))
+        if (held.isEmpty() || CreateAI.isCustomTool(held))
             return;
         if (DeployerActions.cannotDeploy(level, onDepot, held, player, event.getHand(), event.getHitVec()))
             return;

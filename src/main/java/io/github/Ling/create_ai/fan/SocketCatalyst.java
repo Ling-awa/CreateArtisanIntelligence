@@ -1,7 +1,5 @@
 package io.github.Ling.create_ai.fan;
 
-import io.github.Ling.create_ai.Create_ai;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;

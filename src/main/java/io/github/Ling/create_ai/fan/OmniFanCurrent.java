@@ -3,7 +3,7 @@ package io.github.Ling.create_ai.fan;
 import io.github.Ling.create_ai.compat.ToolProcess;
 import io.github.Ling.create_ai.config.Config;
 import io.github.Ling.create_ai.config.RecipeFilter;
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 import io.github.Ling.create_ai.item.HandheldFanItem;
 
 import java.util.ArrayList;
@@ -307,7 +307,7 @@ public final class OmniFanCurrent implements AirFlowSource {
         if (level.random.nextFloat() > 0.5f)
             return;
         Vec3 at = origin.add(direction.scale(0.5));
-        level.addParticle(Create_ai.FAN_AIR.get(), at.x, at.y, at.z, 0, 0, 0);
+        level.addParticle(CreateAI.FAN_AIR.get(), at.x, at.y, at.z, 0, 0, 0);
     }
 
     // --- what the air does ------------------------------------------------------------------------
@@ -433,7 +433,7 @@ public final class OmniFanCurrent implements AirFlowSource {
 
     private boolean isHeld() {
         return owner.isUsingItem() && owner.getUseItem()
-            .is(Create_ai.HANDHELD_FAN.get());
+            .is(CreateAI.HANDHELD_FAN.get());
     }
 
     // --- AirFlowSource ----------------------------------------------------------------------------

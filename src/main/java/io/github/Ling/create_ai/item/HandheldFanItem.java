@@ -2,7 +2,7 @@ package io.github.Ling.create_ai.item;
 
 import io.github.Ling.create_ai.client.CreativeSlotSync;
 import io.github.Ling.create_ai.config.Config;
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 import io.github.Ling.create_ai.fan.CatalystQueryLevel;
 import io.github.Ling.create_ai.fan.FanCurrent;
 import io.github.Ling.create_ai.fan.OmniFanCurrent;
@@ -80,7 +80,7 @@ import net.neoforged.neoforge.event.ItemStackedOnOtherEvent;
  */
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-@EventBusSubscriber(modid = Create_ai.MODID)
+@EventBusSubscriber(modid = CreateAI.MOD_ID)
 // A Level is AutoCloseable, and a level read through here is never this mod's to close.
 @SuppressWarnings("resource")
 public class HandheldFanItem extends Item {
@@ -228,7 +228,7 @@ public class HandheldFanItem extends Item {
     /** What is in the socket, or null when it is empty. */
     @Nullable
     public static ItemStack installed(ItemStack fan) {
-        ResourceLocation id = fan.get(Create_ai.FAN_UPGRADE.get());
+        ResourceLocation id = fan.get(CreateAI.FAN_UPGRADE.get());
         if (id == null)
             return null;
         Item item = BuiltInRegistries.ITEM.get(id);
@@ -241,7 +241,7 @@ public class HandheldFanItem extends Item {
         if (upgrade.isEmpty())
             return installed(fan);
         ItemStack previous = installed(fan);
-        fan.set(Create_ai.FAN_UPGRADE.get(), BuiltInRegistries.ITEM.getKey(upgrade.getItem()));
+        fan.set(CreateAI.FAN_UPGRADE.get(), BuiltInRegistries.ITEM.getKey(upgrade.getItem()));
         return previous;
     }
 
@@ -250,7 +250,7 @@ public class HandheldFanItem extends Item {
     public static ItemStack uninstall(ItemStack fan) {
         ItemStack previous = installed(fan);
         if (previous != null)
-            fan.remove(Create_ai.FAN_UPGRADE.get());
+            fan.remove(CreateAI.FAN_UPGRADE.get());
         return previous;
     }
 
@@ -311,8 +311,8 @@ public class HandheldFanItem extends Item {
 
         ItemStack stackedOn = event.getStackedOnItem();
         ItemStack carried = event.getCarriedItem();
-        boolean fanInSlot = stackedOn.is(Create_ai.HANDHELD_FAN.get());
-        boolean fanOnCursor = carried.is(Create_ai.HANDHELD_FAN.get());
+        boolean fanInSlot = stackedOn.is(CreateAI.HANDHELD_FAN.get());
+        boolean fanOnCursor = carried.is(CreateAI.HANDHELD_FAN.get());
         if (!fanInSlot && !fanOnCursor)
             return;
 

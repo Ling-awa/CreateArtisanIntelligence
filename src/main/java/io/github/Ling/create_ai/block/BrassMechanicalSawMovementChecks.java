@@ -1,6 +1,6 @@
 package io.github.Ling.create_ai.block;
 
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 
 import com.simibubi.create.api.contraption.BlockMovementChecks;
 
@@ -37,7 +37,7 @@ public final class BrassMechanicalSawMovementChecks {
      */
     public static void register() {
         BlockMovementChecks.registerNotSupportiveCheck((state, facing) -> {
-            if (!state.is(Create_ai.BRASS_MECHANICAL_SAW.get()))
+            if (!state.is(CreateAI.BRASS_MECHANICAL_SAW.get()))
                 return BlockMovementChecks.CheckResult.PASS;
             if (!state.hasProperty(BlockStateProperties.FACING))
                 return BlockMovementChecks.CheckResult.PASS;

@@ -1,7 +1,6 @@
 package io.github.Ling.create_ai.tool;
 
 import io.github.Ling.create_ai.config.Config;
-import io.github.Ling.create_ai.Create_ai;
 
 import com.simibubi.create.content.equipment.armor.BacktankUtil;
 

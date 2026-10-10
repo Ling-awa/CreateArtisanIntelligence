@@ -1,8 +1,5 @@
 package io.github.Ling.create_ai.config;
 
-import io.github.Ling.create_ai.Create_ai;
-import io.github.Ling.create_ai.tool.ToolDurability;
-
 import java.util.List;
 
 import net.neoforged.neoforge.common.ModConfigSpec;

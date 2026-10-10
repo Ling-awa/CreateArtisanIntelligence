@@ -1,7 +1,6 @@
 package io.github.Ling.create_ai.block;
 
-import io.github.Ling.create_ai.config.Config;
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 
 import com.simibubi.create.api.stress.BlockStressValues;
 
@@ -36,7 +35,7 @@ public final class BrassMechanicalSawStress {
 
     /** Called once, after the blocks are registered and before any level reads a stress value. */
     public static void register() {
-        BlockStressValues.IMPACTS.register(Create_ai.BRASS_MECHANICAL_SAW.get(),
+        BlockStressValues.IMPACTS.register(CreateAI.BRASS_MECHANICAL_SAW.get(),
             () -> BRASS_MECHANICAL_SAW_IMPACT);
     }
 }

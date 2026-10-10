@@ -1,6 +1,5 @@
 package io.github.Ling.create_ai.client;
 
-import io.github.Ling.create_ai.Create_ai;
 import io.github.Ling.create_ai.item.HandheldFanItem;
 import io.github.Ling.create_ai.item.HandheldMechanicalSawItem;
 import io.github.Ling.create_ai.item.SpoutGunItem;

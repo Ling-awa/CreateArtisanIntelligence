@@ -1,6 +1,6 @@
 package io.github.Ling.create_ai.block;
 
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 
 import java.util.List;
 import java.util.Objects;
@@ -32,7 +32,7 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
  * sounds and particles, the block-breaking progress, the goggle tooltip, the comparator output and the
  * contents dropping out on break are all Create's own code running on Create's own fields. The blade
  * is still drawn by Create's {@code SawVisual} / {@code SawRenderer}, registered for this block entity
- * type in {@link Create_ai.ClientModEvents}.
+ * type in {@link CreateAI.ClientModEvents}.
  *
  * <p>What this class changes:
  * <ul>
@@ -57,7 +57,7 @@ public class BrassMechanicalSawBlockEntity extends SawBlockEntity {
     public BrassMechanicalSawBlockEntity(BlockPos pos, BlockState state) {
         // Create's constructor is public and takes the type as a parameter, so it is reused as-is:
         // the processing inventory, its slot limit, remainingTime and playEvent all come from Create.
-        super(Create_ai.BRASS_MECHANICAL_SAW_BE.get(), pos, state);
+        super(CreateAI.BRASS_MECHANICAL_SAW_BE.get(), pos, state);
     }
 
     @Override
@@ -226,7 +226,7 @@ public class BrassMechanicalSawBlockEntity extends SawBlockEntity {
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(
             Capabilities.ItemHandler.BLOCK,
-            Create_ai.BRASS_MECHANICAL_SAW_BE.get(),
+            CreateAI.BRASS_MECHANICAL_SAW_BE.get(),
             (be, context) -> {
                 if (context != Direction.DOWN)
                     return be.inventory;

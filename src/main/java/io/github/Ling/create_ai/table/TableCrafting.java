@@ -2,9 +2,7 @@ package io.github.Ling.create_ai.table;
 
 import io.github.Ling.create_ai.block.ProcessingTableBlockEntity;
 import io.github.Ling.create_ai.compat.ToolProcess;
-import io.github.Ling.create_ai.config.Config;
 import io.github.Ling.create_ai.config.RecipeFilter;
-import io.github.Ling.create_ai.Create_ai;
 
 import java.util.List;
 import java.util.Optional;

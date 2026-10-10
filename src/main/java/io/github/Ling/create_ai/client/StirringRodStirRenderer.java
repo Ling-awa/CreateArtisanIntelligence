@@ -1,7 +1,7 @@
 package io.github.Ling.create_ai.client;
 
 import io.github.Ling.create_ai.config.Config;
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 
 import java.util.List;
 
@@ -103,7 +103,7 @@ public final class StirringRodStirRenderer {
     /** The stack drawn in the basin: the item's own, made once and never modified. */
     private static ItemStack rod() {
         if (rod == null)
-            rod = new ItemStack(Create_ai.STIRRING_ROD.get());
+            rod = new ItemStack(CreateAI.STIRRING_ROD.get());
         return rod;
     }
 

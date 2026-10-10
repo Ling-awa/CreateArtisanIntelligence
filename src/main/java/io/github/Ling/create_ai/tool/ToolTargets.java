@@ -1,7 +1,5 @@
 package io.github.Ling.create_ai.tool;
 
-import io.github.Ling.create_ai.Create_ai;
-
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.BlockPos;
