@@ -1,7 +1,7 @@
 package io.github.Ling.create_ai.tool;
 
 import io.github.Ling.create_ai.config.Config;
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -42,7 +42,7 @@ import net.neoforged.neoforge.event.entity.living.LivingKnockBackEvent;
  *
  * <p>Server-side only, and called from the item's own tick; the caller owns the durability.
  */
-@EventBusSubscriber(modid = Create_ai.MODID)
+@EventBusSubscriber(modid = CreateAI.MOD_ID)
 public final class SawSweep {
 
     /** Slowness III: the amplifier is the level minus one, as vanilla counts these. */

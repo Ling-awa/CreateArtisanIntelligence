@@ -1,7 +1,5 @@
 package io.github.Ling.create_ai.fan;
 
-import io.github.Ling.create_ai.Create_ai;
-
 import org.jetbrains.annotations.Nullable;
 
 import com.simibubi.create.content.kinetics.fan.processing.FanProcessingType;

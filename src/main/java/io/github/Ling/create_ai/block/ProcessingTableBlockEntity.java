@@ -1,6 +1,6 @@
 package io.github.Ling.create_ai.block;
 
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 import io.github.Ling.create_ai.table.TableCrafting;
 import io.github.Ling.create_ai.table.TableMoveMode;
 
@@ -108,7 +108,7 @@ public class ProcessingTableBlockEntity extends SmartBlockEntity {
     private ItemStack shownResult = ItemStack.EMPTY;
 
     public ProcessingTableBlockEntity(BlockPos pos, BlockState state) {
-        super(Create_ai.PROCESSING_TABLE_BE.get(), pos, state);
+        super(CreateAI.PROCESSING_TABLE_BE.get(), pos, state);
     }
 
     @Override

@@ -2,7 +2,7 @@ package io.github.Ling.create_ai.block;
 
 import io.github.Ling.create_ai.client.BrassMechanicalSawActorVisual;
 import io.github.Ling.create_ai.client.BrassMechanicalSawRenderer;
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 
 
 import org.jetbrains.annotations.Nullable;
@@ -190,6 +190,6 @@ public class BrassMechanicalSawMovementBehaviour extends SawMovementBehaviour {
 
     /** Registers the two behaviours on our block. Called once, from common setup. */
     public static void register() {
-        MovementBehaviour.REGISTRY.register(Create_ai.BRASS_MECHANICAL_SAW.get(), new BrassMechanicalSawMovementBehaviour());
+        MovementBehaviour.REGISTRY.register(CreateAI.BRASS_MECHANICAL_SAW.get(), new BrassMechanicalSawMovementBehaviour());
     }
 }

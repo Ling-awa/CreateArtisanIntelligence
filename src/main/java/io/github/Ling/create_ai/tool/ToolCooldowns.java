@@ -1,7 +1,5 @@
 package io.github.Ling.create_ai.tool;
 
-import io.github.Ling.create_ai.Create_ai;
-
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemCooldowns;

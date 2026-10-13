@@ -3,7 +3,7 @@ package io.github.Ling.create_ai.tool;
 import io.github.Ling.create_ai.compat.ToolProcess;
 import io.github.Ling.create_ai.config.Config;
 import io.github.Ling.create_ai.config.RecipeFilter;
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -111,7 +111,7 @@ public final class DeployerActions {
         ItemStack held = player.getItemInHand(hand);
         // A custom tool's right-click already means its own action, and the table's hand rules keep
         // tools out of the contents. Either way, it is not an ingredient and has no deployer step.
-        if (held.isEmpty() || Create_ai.isCustomTool(held))
+        if (held.isEmpty() || CreateAI.isCustomTool(held))
             return;
         // An item that is still cooling down is not an ingredient either. This is what makes one
         // right-click one step: the client stops sending clicks for a cooled item, and a client that
@@ -179,7 +179,7 @@ public final class DeployerActions {
      */
     public static boolean cannotDeploy(Level level, ItemStack onTable, ItemStack held, @Nullable Player player,
                                        InteractionHand hand, BlockHitResult hit) {
-        if (level == null || onTable.isEmpty() || held.isEmpty() || Create_ai.isCustomTool(held))
+        if (level == null || onTable.isEmpty() || held.isEmpty() || CreateAI.isCustomTool(held))
             return true;
         // The same cooldown gate the action itself uses: a click that is still cooling down does nothing,
         // and a click that does nothing should not look like it did.

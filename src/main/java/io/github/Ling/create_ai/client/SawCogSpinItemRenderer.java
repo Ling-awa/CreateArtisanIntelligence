@@ -1,7 +1,5 @@
 package io.github.Ling.create_ai.client;
 
-import io.github.Ling.create_ai.Create_ai;
-
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel;

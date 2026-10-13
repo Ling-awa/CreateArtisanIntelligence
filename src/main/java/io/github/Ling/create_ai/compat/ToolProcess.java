@@ -1,6 +1,6 @@
 package io.github.Ling.create_ai.compat;
 
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -39,7 +39,7 @@ public enum ToolProcess {
     FAN("fan", List.of("create:fan_blasting", "create:fan_smoking", "create:fan_washing", "create:fan_haunting"),
         List.of(() -> RecipeType.BLASTING, () -> RecipeType.SMELTING, () -> RecipeType.SMOKING,
             () -> AllRecipeTypes.SPLASHING.getType(), () -> AllRecipeTypes.HAUNTING.getType()),
-        List.of(Create_ai.HANDHELD_FAN)),
+        List.of(CreateAI.HANDHELD_FAN)),
 
     /**
      * A basin being mixed. Its two derived pages are the mixer's as well: a basin being stirred through a
@@ -50,16 +50,16 @@ public enum ToolProcess {
     MIXING("mixing",
         List.of("create:mixing", "create:automatic_shapeless", "create:automatic_brewing"),
         List.of(() -> AllRecipeTypes.MIXING.getType()),
-        List.of(Create_ai.STIRRING_ROD)),
+        List.of(CreateAI.STIRRING_ROD)),
 
     /** A belt or depot being cut, and the saw's own block-cutting page. */
     SAWING("sawing", List.of("create:sawing", "create:block_cutting"),
         List.of(() -> AllRecipeTypes.CUTTING.getType(), () -> RecipeType.STONECUTTING),
-        List.of(Create_ai.HANDHELD_MECHANICAL_SAW)),
+        List.of(CreateAI.HANDHELD_MECHANICAL_SAW)),
 
     /** A depot being pressed. */
     PRESSING("pressing", List.of("create:pressing"), List.of(() -> AllRecipeTypes.PRESSING.getType()),
-        List.of(Create_ai.HAMMER, Create_ai.OBSIDIAN_HAMMER)),
+        List.of(CreateAI.HAMMER, CreateAI.OBSIDIAN_HAMMER)),
 
     /**
      * A basin being compressed: what a press does to a basin's contents, which a hammer does by hand.
@@ -72,15 +72,15 @@ public enum ToolProcess {
      */
     COMPACTING("compacting", List.of("create:packing", "create:automatic_packing"),
         List.of(() -> AllRecipeTypes.COMPACTING.getType()),
-        List.of(Create_ai.HAMMER, Create_ai.OBSIDIAN_HAMMER)),
+        List.of(CreateAI.HAMMER, CreateAI.OBSIDIAN_HAMMER)),
 
     /** A depot being filled by a spout, and drained by one. */
     FILLING("filling", List.of("create:spout_filling", "create:draining"),
-        List.of(() -> AllRecipeTypes.FILLING.getType()), List.of(Create_ai.SPOUT_GUN)),
+        List.of(() -> AllRecipeTypes.FILLING.getType()), List.of(CreateAI.SPOUT_GUN)),
 
     /** An item being applied to another by a deployer — the goggles' own half of the mod. */
     DEPLOYING("deploying", List.of("create:deploying", "create:item_application"),
-        List.of(() -> AllRecipeTypes.DEPLOYING.getType()), List.of(Create_ai.GOGGLES)),
+        List.of(() -> AllRecipeTypes.DEPLOYING.getType()), List.of(CreateAI.GOGGLES)),
 
     /**
      * A grid of items assembled into one. Two pages again, and for the same reason the crafter has two: the
@@ -91,15 +91,15 @@ public enum ToolProcess {
      */
     MECHANICAL_CRAFTING("mechanical_crafting",
         List.of("create:mechanical_crafting", "create:automatic_shaped"),
-        List.of(() -> AllRecipeTypes.MECHANICAL_CRAFTING.getType()), List.of(Create_ai.PROCESSING_TABLE_ITEM)),
+        List.of(() -> AllRecipeTypes.MECHANICAL_CRAFTING.getType()), List.of(CreateAI.PROCESSING_TABLE_ITEM)),
 
     /** A millstone grinding an item. */
     MILLING("milling", List.of("create:milling"), List.of(() -> AllRecipeTypes.MILLING.getType()),
-        List.of(Create_ai.HAMMER)),
+        List.of(CreateAI.HAMMER)),
 
     /** Crushing wheels grinding an item to nothing. */
     CRUSHING("crushing", List.of("create:crushing"), List.of(() -> AllRecipeTypes.CRUSHING.getType()),
-        List.of(Create_ai.OBSIDIAN_HAMMER));
+        List.of(CreateAI.OBSIDIAN_HAMMER));
 
     private final String id;
     private final List<String> jeiCategories;

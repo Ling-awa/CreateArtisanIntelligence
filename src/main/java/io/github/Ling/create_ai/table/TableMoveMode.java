@@ -1,7 +1,5 @@
 package io.github.Ling.create_ai.table;
 
-import io.github.Ling.create_ai.Create_ai;
-
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions;

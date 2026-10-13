@@ -1,7 +1,5 @@
 package io.github.Ling.create_ai.item;
 
-import io.github.Ling.create_ai.Create_ai;
-
 import java.util.HashMap;
 import java.util.Map;
 

@@ -1,7 +1,7 @@
 package io.github.Ling.create_ai.fan;
 
 import io.github.Ling.create_ai.config.Config;
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 import io.github.Ling.create_ai.item.HandheldFanItem;
 
 import java.util.HashMap;
@@ -179,7 +179,7 @@ public final class FanCurrent implements IAirCurrentSource, AirFlowSource {
      */
     public static boolean hasNozzle(Player player) {
         ItemStack held = player.getUseItem();
-        if (held.isEmpty() || !held.is(Create_ai.HANDHELD_FAN.get()))
+        if (held.isEmpty() || !held.is(CreateAI.HANDHELD_FAN.get()))
             return false;
         return isNozzle(HandheldFanItem.installed(held));
     }
@@ -265,7 +265,7 @@ public final class FanCurrent implements IAirCurrentSource, AirFlowSource {
         Vec3 at = VecHelper.getCenterOf(origin)
             .add(Vec3.atLowerCornerOf(direction.getNormal())
                 .scale(0.5));
-        level.addParticle(Create_ai.FAN_AIR.get(), at.x, at.y, at.z, 0, 0, 0);
+        level.addParticle(CreateAI.FAN_AIR.get(), at.x, at.y, at.z, 0, 0, 0);
     }
 
     /**
@@ -313,7 +313,7 @@ public final class FanCurrent implements IAirCurrentSource, AirFlowSource {
 
     private boolean isHeld() {
         return owner.isUsingItem() && owner.getUseItem()
-            .is(Create_ai.HANDHELD_FAN.get());
+            .is(CreateAI.HANDHELD_FAN.get());
     }
 
     // --- IAirCurrentSource ------------------------------------------------------------------------

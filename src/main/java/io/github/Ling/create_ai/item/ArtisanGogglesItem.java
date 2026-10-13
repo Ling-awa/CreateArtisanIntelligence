@@ -1,6 +1,6 @@
 package io.github.Ling.create_ai.item;
 
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 import io.github.Ling.create_ai.tool.ArtisanGogglesOnDepots;
 
 import com.simibubi.create.content.equipment.goggles.GogglesItem;
@@ -54,6 +54,6 @@ public class ArtisanGogglesItem extends GogglesItem {
     /** Whether this player has the goggles on their head, which is what the goggles overlay asks. */
     public static boolean isWorn(Player player) {
         return player.getItemBySlot(EquipmentSlot.HEAD)
-            .is(Create_ai.GOGGLES.get());
+            .is(CreateAI.GOGGLES.get());
     }
 }

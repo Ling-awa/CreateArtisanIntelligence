@@ -1,6 +1,6 @@
 package io.github.Ling.create_ai.tool;
 
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 
 import com.simibubi.create.content.logistics.depot.DepotBehaviour;
 import com.simibubi.create.content.logistics.depot.DepotBlockEntity;
@@ -29,7 +29,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
  *
  * <p>This mod's own table is not touched — it refuses tools as cargo outright.
  */
-@EventBusSubscriber(modid = Create_ai.MODID)
+@EventBusSubscriber(modid = CreateAI.MOD_ID)
 public final class ToolUseOnDepots {
 
     private ToolUseOnDepots() {
@@ -42,8 +42,8 @@ public final class ToolUseOnDepots {
         // the stack that was clicked with: the client repeats an interaction that passed with its
         // other hand, and that retry arrives with an empty stack, which Create's depot would read as
         // a bare-handed take.
-        if (!Create_ai.isCustomTool(event.getItemStack())
-            && !Create_ai.isCustomTool(otherHand(player, event.getHand())))
+        if (!CreateAI.isCustomTool(event.getItemStack())
+            && !CreateAI.isCustomTool(otherHand(player, event.getHand())))
             return;
 
         Level level = event.getLevel();

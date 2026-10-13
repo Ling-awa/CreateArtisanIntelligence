@@ -1,8 +1,7 @@
 package io.github.Ling.create_ai.compat;
 
-import io.github.Ling.create_ai.config.Config;
 import io.github.Ling.create_ai.config.RecipeFilter;
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -56,7 +55,7 @@ import net.minecraft.world.item.crafting.RecipeType;
 public class CreateAiJeiPlugin implements IModPlugin {
 
     private static final ResourceLocation UID =
-        ResourceLocation.fromNamespaceAndPath(Create_ai.MODID, "jei_plugin");
+        ResourceLocation.fromNamespaceAndPath(CreateAI.MOD_ID, "jei_plugin");
 
     @Override
     public ResourceLocation getPluginUid() {
@@ -124,7 +123,7 @@ public class CreateAiJeiPlugin implements IModPlugin {
     }
 
     private static ItemStack brassSaw() {
-        return Create_ai.BRASS_MECHANICAL_SAW_ITEM.get()
+        return CreateAI.BRASS_MECHANICAL_SAW_ITEM.get()
             .getDefaultInstance();
     }
 

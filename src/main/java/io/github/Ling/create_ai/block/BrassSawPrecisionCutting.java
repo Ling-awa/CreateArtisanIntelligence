@@ -1,7 +1,5 @@
 package io.github.Ling.create_ai.block;
 
-import io.github.Ling.create_ai.Create_ai;
-
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;

@@ -2,7 +2,7 @@ package io.github.Ling.create_ai.client;
 
 import io.github.Ling.create_ai.block.ProcessingTableBlock;
 import io.github.Ling.create_ai.block.ProcessingTableBlockEntity;
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 import io.github.Ling.create_ai.table.WorkbenchInteractions;
 
 import net.minecraft.client.Minecraft;
@@ -37,7 +37,7 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
  * <p>Client-only, and read-only: it looks at what the player is aiming at and writes a line on the screen.
  * The move itself happens on the server (see {@link WorkbenchInteractions}).
  */
-@EventBusSubscriber(modid = Create_ai.MODID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = CreateAI.MOD_ID, value = Dist.CLIENT)
 public final class WorkbenchHints {
 
     private WorkbenchHints() {

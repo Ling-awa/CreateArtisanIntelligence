@@ -1,6 +1,6 @@
 package io.github.Ling.create_ai.item;
 
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 
 import com.mojang.serialization.DataResult;
 import com.simibubi.create.content.logistics.filter.FilterItemStack;
@@ -60,7 +60,7 @@ public final class SawFilterSlotItem {
      * id — and they come from whichever level the caller is on.
      */
     public static ItemStack installed(ItemStack saw, HolderLookup.Provider registries) {
-        CompoundTag tag = saw.get(Create_ai.SAW_FILTER.get());
+        CompoundTag tag = saw.get(CreateAI.SAW_FILTER.get());
         if (tag == null || tag.isEmpty())
             return ItemStack.EMPTY;
         return ItemStack.parseOptional(registries, tag);
@@ -87,7 +87,7 @@ public final class SawFilterSlotItem {
         Tag tag = encoded.result()
             .orElse(null);
         if (tag instanceof CompoundTag compound)
-            saw.set(Create_ai.SAW_FILTER.get(), compound);
+            saw.set(CreateAI.SAW_FILTER.get(), compound);
         return previous;
     }
 
@@ -95,7 +95,7 @@ public final class SawFilterSlotItem {
     public static ItemStack uninstall(ItemStack saw, HolderLookup.Provider registries) {
         ItemStack previous = installed(saw, registries);
         if (!previous.isEmpty())
-            saw.remove(Create_ai.SAW_FILTER.get());
+            saw.remove(CreateAI.SAW_FILTER.get());
         return previous;
     }
 
@@ -139,7 +139,7 @@ public final class SawFilterSlotItem {
      * someone sneaks and right-clicks it.
      */
     public static boolean filterOff(ItemStack saw) {
-        return saw.getOrDefault(Create_ai.SAW_FILTER_OFF.get(), false);
+        return saw.getOrDefault(CreateAI.SAW_FILTER_OFF.get(), false);
     }
 
     /**
@@ -152,9 +152,9 @@ public final class SawFilterSlotItem {
     public static boolean toggleFilter(ItemStack saw) {
         boolean off = !filterOff(saw);
         if (off)
-            saw.set(Create_ai.SAW_FILTER_OFF.get(), true);
+            saw.set(CreateAI.SAW_FILTER_OFF.get(), true);
         else
-            saw.remove(Create_ai.SAW_FILTER_OFF.get());
+            saw.remove(CreateAI.SAW_FILTER_OFF.get());
         return off;
     }
 
@@ -162,7 +162,7 @@ public final class SawFilterSlotItem {
 
     /** Which recipe the next run takes. */
     public static int recipeIndex(ItemStack saw) {
-        return saw.getOrDefault(Create_ai.SAW_RECIPE_INDEX.get(), 0);
+        return saw.getOrDefault(CreateAI.SAW_RECIPE_INDEX.get(), 0);
     }
 
     /**
@@ -177,7 +177,7 @@ public final class SawFilterSlotItem {
         int next = recipeIndex(saw) + 1;
         if (recipeCount > 0 && next >= recipeCount)
             next = 0;
-        saw.set(Create_ai.SAW_RECIPE_INDEX.get(), next);
+        saw.set(CreateAI.SAW_RECIPE_INDEX.get(), next);
     }
 
     /**

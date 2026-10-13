@@ -1,7 +1,6 @@
 package io.github.Ling.create_ai.config;
 
 import io.github.Ling.create_ai.compat.ToolProcess;
-import io.github.Ling.create_ai.Create_ai;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -2,7 +2,7 @@ package io.github.Ling.create_ai.item;
 
 import io.github.Ling.create_ai.client.CreativeSlotSync;
 import io.github.Ling.create_ai.config.Config;
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 import io.github.Ling.create_ai.ItemTooltips;
 import io.github.Ling.create_ai.tool.DepotToolActions;
 import io.github.Ling.create_ai.tool.SawSweep;
@@ -84,7 +84,7 @@ import net.neoforged.neoforge.event.ItemStackedOnOtherEvent;
  */
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-@EventBusSubscriber(modid = Create_ai.MODID)
+@EventBusSubscriber(modid = CreateAI.MOD_ID)
 // A Level is AutoCloseable, and a level read through here is never this mod's to close.
 @SuppressWarnings("resource")
 public class HandheldMechanicalSawItem extends Item {
@@ -379,8 +379,8 @@ public class HandheldMechanicalSawItem extends Item {
 
         ItemStack stackedOn = event.getStackedOnItem();
         ItemStack carried = event.getCarriedItem();
-        boolean sawInSlot = stackedOn.is(Create_ai.HANDHELD_MECHANICAL_SAW.get());
-        boolean sawOnCursor = carried.is(Create_ai.HANDHELD_MECHANICAL_SAW.get());
+        boolean sawInSlot = stackedOn.is(CreateAI.HANDHELD_MECHANICAL_SAW.get());
+        boolean sawOnCursor = carried.is(CreateAI.HANDHELD_MECHANICAL_SAW.get());
         if (!sawInSlot && !sawOnCursor)
             return;
 

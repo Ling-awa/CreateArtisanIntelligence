@@ -1,7 +1,7 @@
 package io.github.Ling.create_ai.tool;
 
 import io.github.Ling.create_ai.config.Config;
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 import io.github.Ling.create_ai.item.HammerItem;
 
 import org.jetbrains.annotations.Nullable;
@@ -34,7 +34,7 @@ import net.neoforged.neoforge.event.entity.living.LivingKnockBackEvent;
  *
  * <p>Common, not client-only: the knockback is the server's to apply, and the event fires there.
  */
-@EventBusSubscriber(modid = Create_ai.MODID)
+@EventBusSubscriber(modid = CreateAI.MOD_ID)
 public final class HammerCombat {
 
     /** The entity whose knockback is still to come, or null when the last hit's knockback has been seen. */
@@ -49,7 +49,7 @@ public final class HammerCombat {
 
     /** Whether this is one of the mod's hammers — the iron one or the obsidian one. */
     private static boolean isHammer(ItemStack stack) {
-        return stack.is(Create_ai.HAMMER.get()) || stack.is(Create_ai.OBSIDIAN_HAMMER.get());
+        return stack.is(CreateAI.HAMMER.get()) || stack.is(CreateAI.OBSIDIAN_HAMMER.get());
     }
 
     /**

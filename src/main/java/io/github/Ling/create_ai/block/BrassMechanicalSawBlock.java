@@ -1,6 +1,6 @@
 package io.github.Ling.create_ai.block;
 
-import io.github.Ling.create_ai.Create_ai;
+import io.github.Ling.create_ai.CreateAI;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -148,6 +148,6 @@ public class BrassMechanicalSawBlock extends SawBlock {
 
     @Override
     public BlockEntityType<? extends SawBlockEntity> getBlockEntityType() {
-        return Create_ai.BRASS_MECHANICAL_SAW_BE.get();
+        return CreateAI.BRASS_MECHANICAL_SAW_BE.get();
     }
 }
